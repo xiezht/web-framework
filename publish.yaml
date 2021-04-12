@@ -152,12 +152,12 @@ Properties:
     Type:
       - Struct:
           name:
-            Required: true
+            Required: false
             Description: 函数名
             Type:
               - String
           service:
-            Required: true
+            Required: false
             Description: 所属服务
             Type:
               - String
@@ -172,7 +172,7 @@ Properties:
             Type:
               - Struct:
                   image:
-                    Required: false
+                    Required: true
                     Description: 仓库地址
                     Type:
                       - String
@@ -189,7 +189,7 @@ Properties:
                       Type:
                         - String
           caPort:
-            Required: true
+            Required: false
             Description: '监听端口'
             Type:
               - Number
@@ -212,24 +212,24 @@ Properties:
             Required: false
             Description: '环境变量配置 [Environmentkey: String]: EnvironmentValue'
             Type:
-              - List<Strcut>
+              - Strcut
   trigger:
-    Required: true
+    Required: false
     Description: 触发器
     Type:
       - Struct:
           name:
-            Required: true
+            Required: false
             Description: '触发器名称'
             Type:
               - String
           service:
-            Required: true
+            Required: false
             Description: '所属服务'
             Type:
               - String
           function:
-            Required: true
+            Required: false
             Description: '所属函数'
             Type:
               - String

@@ -11,7 +11,7 @@ import os from 'os';
 import path from 'path';
 import _ from 'lodash';
 import { HELP, CONTEXT } from './constant';
-import { ICredentials, isCredentials, ICommandParse } from './interface/inputs';
+import { ICredentials, IInputs, ICommandParse } from './interface/inputs';
 import { genStackId } from './lib/utils';
 import { cpPulumiCodeFiles, genPulumiInputs } from './lib/pulumi';
 import * as shell from 'shelljs';
@@ -20,63 +20,27 @@ import Framework from './lib/framework';
 import ToMetrics from './lib/tarnsform/toMetrics';
 import ToLogs from './lib/tarnsform/toLogs';
 import Fc from './lib/framework/fc';
-import Build from './lib/build';
+import Build from './lib/tarnsform/toBuild';
 
 const PULUMI_CACHE_DIR: string = path.join(os.homedir(), '.s', 'cache', 'pulumi', 'web-framework');
 
 export default class Component {
   @HLogger(CONTEXT) logger: ILogger;
 
-  async getCredentials(
-    credentials: {} | ICredentials,
-    provider: string,
-    accessAlias?: string,
-  ): Promise<ICredentials> {
-    this.logger.debug(
-      `Obtain the key configuration, whether the key needs to be obtained separately: ${_.isEmpty(
-        credentials,
-      )}`,
-    );
-
-    if (isCredentials(credentials)) {
-      return credentials;
-    }
-    return await getCredential(provider, accessAlias);
-  }
-
-  async handlerInputs(inputs) {
-    const { Provider: provider, AccessAlias: accessAlias } = inputs.Project || inputs.project;
-
-    const credentials = await this.getCredentials(inputs.Credentials, provider, accessAlias);
-    inputs.Credentials = credentials;
-
-    const properties = inputs.Properties || inputs.properties;
-
-    const args = inputs.Args || inputs.args;
-
-    return {
-      args,
-      provider,
-      accessAlias,
-      credentials,
-      properties,
-      project: inputs.Project || inputs.project,
-    };
-  }
-
-  async deploy(inputs) {
+  async deploy(inputs: IInputs) {
     const apts = {
       boolean: ['help', 'assumeYes'],
       alias: { help: 'h', assumeYes: 'y' },
     };
-    const comParse: ICommandParse = commandParse({ args: inputs.Args }, apts);
+    const comParse: ICommandParse = commandParse({ args: inputs.args }, apts);
     if (comParse.data?.help) {
       help(HELP);
       return;
     }
 
-    const outputInputs = await this.handlerInputs(inputs);
-    const { credentials, properties, project } = outputInputs;
+    const credentials: ICredentials = await getCredential(inputs.project.access);
+    inputs.credentials = credentials;
+    const { props: properties, project } = inputs;
 
     const assumeYes = comParse.data?.assumeYes;
     const stackId = genStackId(credentials.AccountID, properties.region, properties.service.name);
@@ -118,17 +82,18 @@ export default class Component {
     return fcConfig.customDomains?.map(({ domainName }) => domainName);
   }
 
-  async remove(inputs) {
+  async remove(inputs: IInputs) {
     const apts = {
       boolean: ['help', 'assumeYes'],
       alias: { help: 'h', assumeYes: 'y' },
     };
-    const comParse: ICommandParse = commandParse({ args: inputs.Args }, apts);
+    const comParse: ICommandParse = commandParse({ args: inputs.args }, apts);
     if (comParse.data?.help) {
       help(HELP);
       return;
     }
-    const { credentials, properties, project } = await this.handlerInputs(inputs);
+    const credentials: ICredentials = await getCredential(inputs.project.access);
+    const { props: properties, project } = inputs;
     const stackId = genStackId(credentials.AccountID, properties.region, properties.service.name);
     const pulumiStackDir = path.join(PULUMI_CACHE_DIR, stackId);
 
@@ -153,43 +118,43 @@ export default class Component {
     }
   }
 
-  async build(inputs) {
-    this.handlerInputs(inputs);
-
+  async build(inputs: IInputs) {
+    inputs.credentials =  await getCredential(inputs.project.access);
     const builds = await loadComponent('alibaba/fc-build');
     const cloneInputs = Build.transfromInputs(_.cloneDeep(inputs));
 
     await builds.build(cloneInputs);
   }
 
-  async logs(inputs) {
-    const outputInputs = await this.handlerInputs(inputs);
-    if (!outputInputs.properties.service.logConfig) {
+  async logs(inputs: IInputs) {
+    if (!inputs.props.service?.logConfig) {
       throw new Error('The service is not configured to logConfig.');
     }
+
+    inputs.credentials =  await getCredential(inputs.project.access);
     const inputsLogs = await ToLogs.tarnsform(_.cloneDeep(inputs));
     const logs = await loadComponent('alibaba/logs');
     
     await logs.logs(inputsLogs);
   }
 
-  async metrics(inputs) {
-    await this.handlerInputs(inputs);
+  async metrics(inputs: IInputs) {
+    inputs.credentials =  await getCredential(inputs.project.access);
 
     const inputsMetrics = await ToMetrics.tarnsform(_.cloneDeep(inputs));
     const metrics = await loadComponent('alibaba/fc-metrics');
     await metrics.metrics(inputsMetrics);
   }
 
-  async cp(inputs) {
-    await NasComponent.cp(inputs.Properties, _.cloneDeep(inputs));
+  async cp(inputs: IInputs) {
+    await NasComponent.cp(inputs.props, _.cloneDeep(inputs));
   }
 
-  async ls(inputs) {
-    await NasComponent.ls(inputs.Properties, _.cloneDeep(inputs));
+  async ls(inputs: IInputs) {
+    await NasComponent.ls(inputs.props, _.cloneDeep(inputs));
   }
 
-  async rm(inputs) {
-    await NasComponent.rm(inputs.Properties, _.cloneDeep(inputs));
+  async rm(inputs: IInputs) {
+    await NasComponent.rm(inputs.props, _.cloneDeep(inputs));
   }
 }

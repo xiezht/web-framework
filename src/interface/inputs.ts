@@ -2,6 +2,20 @@ import { IServiceConfig } from './service';
 import { IFunctionConfig } from './function';
 import { ITriggerConfig } from './trigger';
 
+
+export interface IInputs {
+  props: IProperties;
+  project: {
+    component: string;
+    access: string;
+    projectName: string;
+  };
+  credentials?: any;
+  appName: string;
+  args: string;
+  path: any;
+}
+
 export interface ICommandParse {
   rawData?: string;
   data?: ICommandData;
@@ -21,14 +35,11 @@ export interface ICredentials {
   SecurityToken?: string;
 }
 
-export function isCredentials(arg: any): arg is ICredentials {
-  return arg.AccessKeyID !== undefined;
-}
-
 export interface IProperties {
+  runtime: string;
   region: string;
   service: IServiceConfig;
   function: IFunctionConfig;
   trigger: ITriggerConfig;
-  domain: string;
+  customDomains: string;
 }

@@ -31,8 +31,8 @@
   "scripts": {
     "dev": "npx tsc -w -p tsconfig.json",
     "prebuild": "rimraf dist",
-    "package-zip": "rm -r dist/lib/pulumi-fc && mkdir dist/lib/pulumi-fc && cp -rf src/lib/pulumi-fc/* dist/lib/pulumi-fc && cp -rf package*.json publish.yaml ./dist",
-    "build:ts": "npx tsc -p tsconfig.json",
+    "package-zip": "rm -r dist/lib/pulumi-fc && mkdir dist/lib/pulumi-fc && cp -rf src/lib/pulumi-fc/* dist/lib/pulumi-fc",
+    "build:ts": "npx tsc -p tsconfig.json && npm run package-zip",
     "build:component": "npx webpack --mode=production",
     "test": "jest",
     "test:cov": "jest --coverage",
