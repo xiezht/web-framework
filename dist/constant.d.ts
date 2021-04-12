@@ -10,7 +10,6 @@ export declare const HELP: ({
 } | {
     header: string;
     content: {
-        desc: string;
         example: string;
     }[];
     optionList?: undefined;
