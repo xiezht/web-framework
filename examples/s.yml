@@ -18,7 +18,8 @@ services:
         #     - Action: sts:AssumeRole
         #       Effect: Allow
         #       Principal:
-        #         - Service: fc.aliyuncs.com
+        #         Service:
+        #           - fc.aliyuncs.com
         #   policys:
         #     - policyName: AliyunContainerRegistryReadOnlyAccess
         #       policyType: System

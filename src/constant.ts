@@ -14,8 +14,16 @@ export const HELP = [
     header: 'Examples',
     content: [
       {
-        desc: '使用: deploy',
-        example: '$ s deploy',
+        example: '$ s exec -- deploy',
+      },
+      {
+        example: '$ s exec -- remove',
+      },
+      {
+        example: '$ s exec -- metrics',
+      },
+      {
+        example: '$ s exec -- logs',
       },
     ],
   },
