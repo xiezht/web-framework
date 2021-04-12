@@ -13,18 +13,29 @@ if (fse.pathExistsSync(configFile)) {
     function: functionConfig,
     trigger,
     role,
+    rolePolicy,
     rolePolicyAttachments,
     customDomains
   } = JSON.parse(fse.readFileSync(configFile, { encoding: 'utf-8' }));
 
   const dependsOnRam = [];
+  const dependsOnPolicy = [];
   const ram = new alicloud.ram.Role(role.name, role);
   dependsOnRam.push(ram);
+
+  if (rolePolicy) {
+    for (const policy of rolePolicy) {
+      const p = new alicloud.ram.Policy(policy.policyName, policy, { dependsOn: [ram] });
+      dependsOnPolicy.push(p);
+      dependsOnRam.push(p);
+    }
+  }
+
   for (const rolePolicyAttachment of rolePolicyAttachments) {
     const policy = new alicloud.ram.RolePolicyAttachment(rolePolicyAttachment.policyName, {
       ...rolePolicyAttachment,
       roleName: ram.name
-    }, { dependsOn: [ram], parent: ram });
+    }, { dependsOn: [...dependsOnPolicy, ram], parent: ram });
 
     dependsOnRam.push(policy);
   }

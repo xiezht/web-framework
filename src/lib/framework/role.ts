@@ -27,8 +27,8 @@ export default class Component {
           });
 
           rolePolicy.push({
-            roleName: name,
             policyName: policyAttachment.policyName,
+            rotateStrategy: 'DeleteOldestNonDefaultVersionWhenLimitExceeded',
             policyDocument
           });
         } else {
@@ -37,12 +37,25 @@ export default class Component {
       }
     }
 
-    let document:string;
+    let document: string;
     if (statement) {
       document = JSON.stringify({
-        Statement: JSON.stringify(document),
+        Statement: statement,
         Version: '1',
       });
+    } else {
+      document = JSON.stringify({
+        Statement: [
+          {
+            Action: 'sts:AssumeRole',
+            Effect: 'Allow',
+            Principal: {
+              Service: ['fc.aliyuncs.com'],
+            },
+          },
+        ],
+        Version: '1',
+      })
     }
 
     return {

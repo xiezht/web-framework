@@ -57,7 +57,7 @@ export default class Component {
     } else {
       Object.assign(config, Role.getRole(service.role));
     }
-    delete service.role;
+    delete config.service.role;
 
     config.customDomains = await Domain.get(inputs);
 
