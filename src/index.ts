@@ -23,6 +23,8 @@ import Fc from './lib/framework/fc';
 import Build from './lib/tarnsform/toBuild';
 
 const PULUMI_CACHE_DIR: string = path.join(os.homedir(), '.s', 'cache', 'pulumi', 'web-framework');
+const CODE_LIB_PATH = path.resolve(__dirname, '..');
+const PULUMI_LOCAL_PLUGIN_PATH = path.join(CODE_LIB_PATH, 'utils', 'pulumi-plugin');
 
 export default class Component {
   @HLogger(CONTEXT) logger: ILogger;
@@ -40,7 +42,7 @@ export default class Component {
 
     const credentials: ICredentials = await getCredential(inputs.project.access);
     inputs.credentials = credentials;
-    const { props: properties, project } = inputs;
+    const properties = inputs.props;
 
     const assumeYes = comParse.data?.assumeYes;
     const stackId = genStackId(credentials.AccountID, properties.region, properties.service.name);
@@ -57,16 +59,16 @@ export default class Component {
     await cpPulumiCodeFiles(pulumiStackDir);
     shell.exec(`cd ${pulumiStackDir} && npm i`, { silent: true });
 
-    // 部署 fc 资源
-    const pulumiComponentIns = await loadComponent('pulumi-alibaba');
-
     const pulumiInputs = genPulumiInputs(
-      credentials,
-      project,
+      inputs,
       stackId,
       properties.region,
       pulumiStackDir,
     );
+
+    // 部署 fc 资源
+    const pulumiComponentIns = await loadComponent('pulumi-alibaba');
+    await pulumiComponentIns.installPluginFromLocal({ args: PULUMI_LOCAL_PLUGIN_PATH });
 
     const upRes = await pulumiComponentIns.up(pulumiInputs);
     if (upRes.stderr && upRes.stderr !== '') {
@@ -93,7 +95,7 @@ export default class Component {
       return;
     }
     const credentials: ICredentials = await getCredential(inputs.project.access);
-    const { props: properties, project } = inputs;
+    const properties = inputs.props;
     const stackId = genStackId(credentials.AccountID, properties.region, properties.service.name);
     const pulumiStackDir = path.join(PULUMI_CACHE_DIR, stackId);
 
@@ -103,14 +105,14 @@ export default class Component {
       this.logger.debug(ex);
     }
 
-    const pulumiComponentIns = await loadComponent('pulumi-alibaba');
     const pulumiInputs = genPulumiInputs(
-      credentials,
-      project,
+      inputs,
       stackId,
       properties.region,
       pulumiStackDir,
     );
+    const pulumiComponentIns = await loadComponent('pulumi-alibaba');
+    await pulumiComponentIns.installPluginFromLocal({ args: PULUMI_LOCAL_PLUGIN_PATH });
     const upRes = await pulumiComponentIns.destroy(pulumiInputs);
     if (upRes.stderr && upRes.stderr !== '') {
       this.logger.error(`destroy error: ${upRes.stderr}`);
