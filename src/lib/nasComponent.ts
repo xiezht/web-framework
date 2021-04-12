@@ -97,7 +97,7 @@ export default class Component {
 
     inputs.project.component = 'fc-nas';
 
-    const nas = await core.loadComponent('alibaba/fc-nas');
+    const nas = await core.loadComponent('fc-nas');
 
     return {
       nas,

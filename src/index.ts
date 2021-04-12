@@ -58,7 +58,7 @@ export default class Component {
     shell.exec(`cd ${pulumiStackDir} && npm i`, { silent: true });
 
     // 部署 fc 资源
-    const pulumiComponentIns = await loadComponent('alibaba/pulumi-alibaba');
+    const pulumiComponentIns = await loadComponent('pulumi-alibaba');
 
     const pulumiInputs = genPulumiInputs(
       credentials,
@@ -103,7 +103,7 @@ export default class Component {
       this.logger.debug(ex);
     }
 
-    const pulumiComponentIns = await loadComponent('alibaba/pulumi-alibaba');
+    const pulumiComponentIns = await loadComponent('pulumi-alibaba');
     const pulumiInputs = genPulumiInputs(
       credentials,
       project,
@@ -120,7 +120,7 @@ export default class Component {
 
   async build(inputs: IInputs) {
     inputs.credentials =  await getCredential(inputs.project.access);
-    const builds = await loadComponent('alibaba/fc-build');
+    const builds = await loadComponent('fc-build');
     const cloneInputs = Build.transfromInputs(_.cloneDeep(inputs));
 
     await builds.build(cloneInputs);
@@ -133,7 +133,7 @@ export default class Component {
 
     inputs.credentials =  await getCredential(inputs.project.access);
     const inputsLogs = await ToLogs.tarnsform(_.cloneDeep(inputs));
-    const logs = await loadComponent('alibaba/logs');
+    const logs = await loadComponent('logs');
     
     await logs.logs(inputsLogs);
   }
@@ -142,7 +142,7 @@ export default class Component {
     inputs.credentials =  await getCredential(inputs.project.access);
 
     const inputsMetrics = await ToMetrics.tarnsform(_.cloneDeep(inputs));
-    const metrics = await loadComponent('alibaba/fc-metrics');
+    const metrics = await loadComponent('fc-metrics');
     await metrics.metrics(inputsMetrics);
   }
 
