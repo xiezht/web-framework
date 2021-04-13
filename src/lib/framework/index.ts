@@ -51,7 +51,6 @@ export default class Component {
       config.log = this.genLogConfig();
     }
 
-    // @TODO: 需要重构 pulumi 的 role 模块
     if (!service.role || isAuto(service.role)) {
       Object.assign(config, Role.genAutoRole(this.autoName));
     } else {
