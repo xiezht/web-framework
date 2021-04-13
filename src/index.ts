@@ -23,8 +23,7 @@ import Fc from './lib/framework/fc';
 import Build from './lib/tarnsform/toBuild';
 
 const PULUMI_CACHE_DIR: string = path.join(os.homedir(), '.s', 'cache', 'pulumi', 'web-framework');
-const CODE_LIB_PATH = path.resolve(__dirname, '..');
-const PULUMI_LOCAL_PLUGIN_PATH = path.join(CODE_LIB_PATH, 'utils', 'pulumi-plugin');
+const PULUMI_LOCAL_PLUGIN_PATH = path.join(__dirname, 'lib', 'utils', 'pulumi-plugin');
 
 export default class Component {
   @HLogger(CONTEXT) logger: ILogger;

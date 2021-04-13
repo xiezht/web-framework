@@ -95,9 +95,9 @@ export default class Component {
     );
     this.logger.debug(`Nas properties is: ${JSON.stringify(nasProperties)}`);
 
-    inputs.project.component = 'fc-nas';
+    inputs.project.component = 'nas';
 
-    const nas = await core.loadComponent('fc-nas');
+    const nas = await core.loadComponent('nas');
 
     return {
       nas,
