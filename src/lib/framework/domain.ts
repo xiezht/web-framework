@@ -105,7 +105,7 @@ export default class Component {
   }
 
   static async getAutoDomain(inputs: IInputs, serviceName: string, functionName: string): Promise<string> {
-    const domainComponent = await core.loadComponent('domain');
+    const domainComponent = await core.loadComponent('devsapp/domain');
 
     return await domainComponent.get({
       ...inputs,
