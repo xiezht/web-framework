@@ -30,6 +30,7 @@ export const HELP = [
 ];
 
 export const CONTEXT = 'WEB-FRAMEWORK';
+export const CONTEXT_NAME = 'web-framework';
 
 export const getAutoName = (accountID: string, region: string, serviceName: string) =>
   `framework-${accountID}-${region}-${serviceName}`;

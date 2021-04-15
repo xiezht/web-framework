@@ -97,7 +97,7 @@ export default class Component {
 
     inputs.project.component = 'nas';
 
-    const nas = await core.loadComponent('nas');
+    const nas = await core.loadComponent('devsapp/nas');
 
     return {
       nas,

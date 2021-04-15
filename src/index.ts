@@ -3,6 +3,7 @@ import {
   ILogger,
   getCredential,
   help,
+  reportComponent,
   commandParse,
   loadComponent,
 } from '@serverless-devs/core';
@@ -10,7 +11,7 @@ import fse from 'fs-extra';
 import os from 'os';
 import path from 'path';
 import _ from 'lodash';
-import { HELP, CONTEXT } from './constant';
+import { HELP, CONTEXT, CONTEXT_NAME } from './constant';
 import { ICredentials, IInputs, ICommandParse } from './interface/inputs';
 import { genStackId } from './lib/utils';
 import { cpPulumiCodeFiles, genPulumiInputs } from './lib/pulumi';
@@ -43,6 +44,12 @@ export default class Component {
     inputs.credentials = credentials;
     const properties = inputs.props;
 
+    await reportComponent(CONTEXT_NAME, {
+      command: 'deploy',
+      uid: credentials.AccountID,
+      remark: '部署应用',
+    });
+
     const assumeYes = comParse.data?.assumeYes;
     const stackId = genStackId(credentials.AccountID, properties.region, properties.service.name);
 
@@ -66,7 +73,7 @@ export default class Component {
     );
 
     // 部署 fc 资源
-    const pulumiComponentIns = await loadComponent('pulumi-alibaba');
+    const pulumiComponentIns = await loadComponent('devsapp/pulumi-alibaba');
     await pulumiComponentIns.installPluginFromLocal({ args: PULUMI_LOCAL_PLUGIN_PATH });
 
     const upRes = await pulumiComponentIns.up(pulumiInputs);
@@ -94,6 +101,13 @@ export default class Component {
       return;
     }
     const credentials: ICredentials = await getCredential(inputs.project.access);
+
+    await reportComponent(CONTEXT_NAME, {
+      command: 'remove',
+      uid: credentials.AccountID,
+      remark: '删除应用',
+    });
+
     const properties = inputs.props;
     const stackId = genStackId(credentials.AccountID, properties.region, properties.service.name);
     const pulumiStackDir = path.join(PULUMI_CACHE_DIR, stackId);
@@ -110,7 +124,7 @@ export default class Component {
       properties.region,
       pulumiStackDir,
     );
-    const pulumiComponentIns = await loadComponent('pulumi-alibaba');
+    const pulumiComponentIns = await loadComponent('devsapp/pulumi-alibaba');
     await pulumiComponentIns.installPluginFromLocal({ args: PULUMI_LOCAL_PLUGIN_PATH });
     const upRes = await pulumiComponentIns.destroy(pulumiInputs);
     if (upRes.stderr && upRes.stderr !== '') {
@@ -120,8 +134,15 @@ export default class Component {
   }
 
   async build(inputs: IInputs) {
-    inputs.credentials =  await getCredential(inputs.project.access);
-    const builds = await loadComponent('fc-build');
+    inputs.credentials = await getCredential(inputs.project.access);
+
+    await reportComponent(CONTEXT_NAME, {
+      command: 'build',
+      uid: inputs.credentials.AccountID,
+      remark: '应用打包',
+    });
+
+    const builds = await loadComponent('devsapp/fc-build');
     const cloneInputs = Build.transfromInputs(_.cloneDeep(inputs));
 
     await builds.build(cloneInputs);
@@ -133,8 +154,15 @@ export default class Component {
     }
 
     inputs.credentials =  await getCredential(inputs.project.access);
+
+    await reportComponent(CONTEXT_NAME, {
+      command: 'logs',
+      uid: inputs.credentials.AccountID,
+      remark: '查看日志',
+    });
+
     const inputsLogs = await ToLogs.tarnsform(_.cloneDeep(inputs));
-    const logs = await loadComponent('logs');
+    const logs = await loadComponent('devsapp/logs');
     
     await logs.logs(inputsLogs);
   }
@@ -142,8 +170,14 @@ export default class Component {
   async metrics(inputs: IInputs) {
     inputs.credentials =  await getCredential(inputs.project.access);
 
+    await reportComponent(CONTEXT_NAME, {
+      command: 'metrics',
+      uid: inputs.credentials.AccountID,
+      remark: '查看监控',
+    });
+
     const inputsMetrics = await ToMetrics.tarnsform(_.cloneDeep(inputs));
-    const metrics = await loadComponent('fc-metrics');
+    const metrics = await loadComponent('devsapp/fc-metrics');
     await metrics.metrics(inputsMetrics);
   }
 
