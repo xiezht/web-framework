@@ -153,7 +153,7 @@ export default class Component {
       throw new Error('The service is not configured to logConfig.');
     }
 
-    inputs.credentials =  await getCredential(inputs.project.access);
+    inputs.credentials = await getCredential(inputs.project.access);
 
     await reportComponent(CONTEXT_NAME, {
       command: 'logs',
@@ -168,7 +168,7 @@ export default class Component {
   }
 
   async metrics(inputs: IInputs) {
-    inputs.credentials =  await getCredential(inputs.project.access);
+    inputs.credentials = await getCredential(inputs.project.access);
 
     await reportComponent(CONTEXT_NAME, {
       command: 'metrics',
@@ -182,14 +182,35 @@ export default class Component {
   }
 
   async cp(inputs: IInputs) {
+    const credentials = await getCredential(inputs.project.access);
+    await reportComponent(CONTEXT_NAME, {
+      command: 'cp',
+      uid: credentials.AccountID,
+      remark: '查看日志',
+    });
+
     await NasComponent.cp(inputs.props, _.cloneDeep(inputs));
   }
 
   async ls(inputs: IInputs) {
+    const credentials = await getCredential(inputs.project.access);
+    await reportComponent(CONTEXT_NAME, {
+      command: 'ls',
+      uid: credentials.AccountID,
+      remark: '查看日志',
+    });
+
     await NasComponent.ls(inputs.props, _.cloneDeep(inputs));
   }
 
   async rm(inputs: IInputs) {
+    const credentials = await getCredential(inputs.project.access);
+    await reportComponent(CONTEXT_NAME, {
+      command: 'rm',
+      uid: credentials.AccountID,
+      remark: '查看日志',
+    });
+
     await NasComponent.rm(inputs.props, _.cloneDeep(inputs));
   }
 }
