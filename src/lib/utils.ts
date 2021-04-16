@@ -91,6 +91,7 @@ export async function getImageAndReport(inputs: IInputs, uid: string, command: s
         region: inputs.props.region,
         runtime: inputs.props.runtime
       },
+      form: true
     });
 
     inputs.props.function.customContainerConfig.image = image;

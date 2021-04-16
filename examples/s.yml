@@ -4,7 +4,7 @@ access: default  #  秘钥别名
 
 services:
   framework-test: #  服务名称
-    component: /Users/wb447188/Desktop/new-repo/web-framework  # 组件名称
+    component: web-framework  # 组件名称
     props:
       runtime: nodejs12
       region: cn-shenzhen
