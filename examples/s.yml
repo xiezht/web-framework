@@ -1,12 +1,12 @@
 edition: 1.0.0          #  命令行YAML规范版本，遵循语义化版本（Semantic Versioning）规范
 name: frameworkApp      #  项目名称
-access: aliyun-release  #  秘钥别名
+access: default  #  秘钥别名
 
 services:
   framework-test: #  服务名称
-    component: web-framework  # 组件名称
+    component: /Users/wb447188/Desktop/new-repo/web-framework  # 组件名称
     props:
-      framework: express
+      runtime: nodejs12
       region: cn-shenzhen
       service:
         name: A-express
@@ -37,7 +37,7 @@ services:
         # runtime: nodejs12
         # description: 测试环节
         customContainerConfig:
-          image: registry.cn-shenzhen.aliyuncs.com/test-wss/nodejs12:v0.1
+          # image: registry.cn-shenzhen.aliyuncs.com/test-wss/nodejs12:v0.1
           command: '["node", "index.js"]'
           # args: '["--port", "9000"]'
         # caPort: 9000

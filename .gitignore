@@ -18,3 +18,4 @@ download
 !s-zip/src
 package-lock.json
 **/utils/pulumi-plugin
+examples/**/.s

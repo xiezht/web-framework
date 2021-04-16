@@ -1,8 +1,9 @@
 import fse from 'fs-extra';
 import inquirer from 'inquirer';
-import { CONTEXT, STORENAME } from '../constant';
+import { CONTEXT, STORENAME, CONTEXT_NAME } from '../constant';
 import { ILogConfig } from '../interface/service';
-import { Logger } from '@serverless-devs/core';
+import { IInputs } from '../interface/inputs';
+import { Logger, reportComponent, request } from '@serverless-devs/core';
 
 export function genStackId(accountId: string, region: string, serviceName: string): string {
   return `${accountId}-${region}-${serviceName}`;
@@ -77,4 +78,21 @@ export function getLogConfig(logConfig: 'auto' | 'Auto' | ILogConfig, autoName: 
   }
 
   throw new Error('service/logConfig configuration error');
+}
+
+
+export async function getImageAndReport(inputs: IInputs, uid: string, command: string) {
+  reportComponent(CONTEXT_NAME, { command, uid });
+  
+  if (!inputs.props.function.customContainerConfig.image) {
+    const { image } = await request('https://registry.serverlessfans.cn/registry/image', {
+      method: 'post',
+      body: {
+        region: inputs.props.region,
+        runtime: inputs.props.runtime
+      },
+    });
+
+    inputs.props.function.customContainerConfig.image = image;
+  }
 }

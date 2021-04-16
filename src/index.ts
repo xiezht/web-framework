@@ -3,7 +3,6 @@ import {
   ILogger,
   getCredential,
   help,
-  reportComponent,
   commandParse,
   loadComponent,
 } from '@serverless-devs/core';
@@ -11,9 +10,9 @@ import fse from 'fs-extra';
 import os from 'os';
 import path from 'path';
 import _ from 'lodash';
-import { HELP, CONTEXT, CONTEXT_NAME } from './constant';
+import { HELP, CONTEXT } from './constant';
 import { ICredentials, IInputs, ICommandParse } from './interface/inputs';
-import { genStackId } from './lib/utils';
+import { genStackId, getImageAndReport } from './lib/utils';
 import { cpPulumiCodeFiles, genPulumiInputs } from './lib/pulumi';
 import * as shell from 'shelljs';
 import NasComponent from './lib/nasComponent';
@@ -44,11 +43,7 @@ export default class Component {
     inputs.credentials = credentials;
     const properties = inputs.props;
 
-    await reportComponent(CONTEXT_NAME, {
-      command: 'deploy',
-      uid: credentials.AccountID,
-      remark: '部署应用',
-    });
+    await getImageAndReport(inputs, credentials.AccountID, 'deploy');
 
     const assumeYes = comParse.data?.assumeYes;
     const stackId = genStackId(credentials.AccountID, properties.region, properties.service.name);
@@ -102,11 +97,7 @@ export default class Component {
     }
     const credentials: ICredentials = await getCredential(inputs.project.access);
 
-    await reportComponent(CONTEXT_NAME, {
-      command: 'remove',
-      uid: credentials.AccountID,
-      remark: '删除应用',
-    });
+    await getImageAndReport(inputs, credentials.AccountID, 'remove');
 
     const properties = inputs.props;
     const stackId = genStackId(credentials.AccountID, properties.region, properties.service.name);
@@ -136,11 +127,7 @@ export default class Component {
   async build(inputs: IInputs) {
     inputs.credentials = await getCredential(inputs.project.access);
 
-    await reportComponent(CONTEXT_NAME, {
-      command: 'build',
-      uid: inputs.credentials.AccountID,
-      remark: '应用打包',
-    });
+    await getImageAndReport(inputs, inputs.credentials.AccountID, 'build');
 
     const builds = await loadComponent('devsapp/fc-build');
     const cloneInputs = Build.transfromInputs(_.cloneDeep(inputs));
@@ -154,12 +141,7 @@ export default class Component {
     }
 
     inputs.credentials = await getCredential(inputs.project.access);
-
-    await reportComponent(CONTEXT_NAME, {
-      command: 'logs',
-      uid: inputs.credentials.AccountID,
-      remark: '查看日志',
-    });
+    await getImageAndReport(inputs, inputs.credentials.AccountID, 'logs');
 
     const inputsLogs = await ToLogs.tarnsform(_.cloneDeep(inputs));
     const logs = await loadComponent('devsapp/logs');
@@ -170,11 +152,7 @@ export default class Component {
   async metrics(inputs: IInputs) {
     inputs.credentials = await getCredential(inputs.project.access);
 
-    await reportComponent(CONTEXT_NAME, {
-      command: 'metrics',
-      uid: inputs.credentials.AccountID,
-      remark: '查看监控',
-    });
+    await getImageAndReport(inputs, inputs.credentials.AccountID, 'metrics');
 
     const inputsMetrics = await ToMetrics.tarnsform(_.cloneDeep(inputs));
     const metrics = await loadComponent('devsapp/fc-metrics');
@@ -183,33 +161,21 @@ export default class Component {
 
   async cp(inputs: IInputs) {
     const credentials = await getCredential(inputs.project.access);
-    await reportComponent(CONTEXT_NAME, {
-      command: 'cp',
-      uid: credentials.AccountID,
-      remark: '查看日志',
-    });
+    await getImageAndReport(inputs, credentials.AccountID, 'cp');
 
     await NasComponent.cp(inputs.props, _.cloneDeep(inputs));
   }
 
   async ls(inputs: IInputs) {
     const credentials = await getCredential(inputs.project.access);
-    await reportComponent(CONTEXT_NAME, {
-      command: 'ls',
-      uid: credentials.AccountID,
-      remark: '查看日志',
-    });
+    await getImageAndReport(inputs, credentials.AccountID, 'ls');
 
     await NasComponent.ls(inputs.props, _.cloneDeep(inputs));
   }
 
   async rm(inputs: IInputs) {
     const credentials = await getCredential(inputs.project.access);
-    await reportComponent(CONTEXT_NAME, {
-      command: 'rm',
-      uid: credentials.AccountID,
-      remark: '查看日志',
-    });
+    await getImageAndReport(inputs, credentials.AccountID, 'rm');
 
     await NasComponent.rm(inputs.props, _.cloneDeep(inputs));
   }
