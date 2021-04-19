@@ -270,11 +270,10 @@ Properties:
             Type:
               - Enum:
                   - HTTP
-                  - HTTPS
-                  - HTTP&HTTPS
+                  - HTTP,HTTPS
           routeConfigs:
             Required: true
-            Description: 触发器类型
+            Description: 路由配置
             Type:
               - List<Struct>:
                   path:
@@ -304,7 +303,7 @@ Properties:
                           - PUT
           certConfig:
             Required: false
-            Description: 触发器类型
+            Description: 证书配置
             Type:
               - Struct:
                   certName:
