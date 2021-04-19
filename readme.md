@@ -20,8 +20,8 @@
 |  ----  | ----  |  ----  | ----  |  ----  |  ----  |
 | name  | true | string  | - | 服务名称  |  -  |
 | description  | false | string  | - | 描述  |  -  |
-| logConfig  | false | Auto、auto 和 [logConfig](#logConfig)  | - | 日志配置  |  -  |
-| role  | false | Auto、auto 和 [role](#role)  | - | 角色配置  |  默认为 Auto  |
+| logConfig  | false | string 或 struct  | Auto、auto 、 [logConfig](#logConfig) | 日志配置  |  -  |
+| role  | false | string 或 struct  | Auto、auto 、 [role](#role) | 角色配置  |  默认为 Auto  |
 
 #### logConfig
 
@@ -35,7 +35,7 @@
 |  参数   |  必填  |  类型  | 取值  |  描述  |  备注  |    
 |  ----  | ----  |  ----  | ----  |  ----  |  ----  |
 | name  | true | string  | - | 角色名  |  -  |
-| statement  | false | [statement](#statement)  | - | 角色授权 statement  |  请参考[权限策略基本元素](https://help.aliyun.com/document_detail/93738.html)  |
+| statement  | false | struct | [statement](#statement) | 角色授权 statement  |  请参考[权限策略基本元素](https://help.aliyun.com/document_detail/93738.html)  |
 | policys  | true | list<string> 、List<[policy](#policy)>  | - | 角色名  |  -  |
 
 ##### policy
@@ -43,8 +43,8 @@
 |  参数   |  必填  |  类型  | 取值  |  描述  |  备注  |    
 |  ----  | ----  |  ----  | ----  |  ----  |  ----  |
 | policyName  | true | string  | - | 策略名称  |  -  |
-| policyType  | false | Custom 、System   | - | 策略类型  | 和 statement 有一个必填，如果填写则认为是已经存在的，直接复用，优先级高于statement |
-| statement  | false | [statement](#statement)  | - | 角色授权 statement  |  和 policyType 有一个必填，如果填写则创建，具体配置请参考[权限策略基本元素](https://help.aliyun.com/document_detail/93738.html)  |
+| policyType  | false | string  | Custom 、System | 策略类型  | 和 statement 有一个必填，如果填写则认为是已经存在的，直接复用，优先级高于statement |
+| statement  | false | struct  | [statement](#statement) | 角色授权 statement  |  和 policyType 有一个必填，如果填写则创建，具体配置请参考[权限策略基本元素](https://help.aliyun.com/document_detail/93738.html)  |
 
 ##### statement
 
@@ -61,8 +61,8 @@
 |  ----  | ----  |  ----  | ----  |  ----  |  ----  |
 | name  | false | string  | - | 函数名称  |  -  |
 | description  | false | string  | - | 描述  |  -  |
-| customContainerConfig  | true | [customContainerConfig](#customContainerConfig)  | - | 自定义镜像  | - |
-| code  | true | [code](#code)  | - | 代码包配置  |  -  |
+| customContainerConfig  | true | struct | [customContainerConfig](#customContainerConfig) | 自定义镜像  | - |
+| code  | true | struct | [code](#code) | 代码包配置  |  -  |
 | environmentVariables  | false | strcut | - | 环境变量配置  | 示例配置：PATH: /mnt/auto:/mnt/auto/lib  |
 | caPort  | false | number  | - | 监听端口  |  默认 9000  |
 | timeout  | false | number  | - | 超时  |  默认 60s  |
@@ -116,7 +116,7 @@
 |  serviceName  | false  |  string  | ----  |  服务名  |  ----  |
 |  functionName  | false  |  string  | ----  |  函数名  |  ----  |
 |  methods  | false  |  list<string>  | ----  |  请求方法  |  ----  |
-|  certConfig  | false  |  [certConfig](#certConfig)  | ----  |  证书配置  |  ----  |
+|  certConfig  | false  | struct | [certConfig](#certConfig)  |  证书配置  |  ----  |
 
 ##### certConfig
 
