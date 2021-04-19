@@ -33,7 +33,7 @@
 #### role
 
 |  参数   |  必填  |  类型  | 取值  |  描述  |  备注  |    
-|  ----  | ----  |  ----  | ----  |  ----  |  ----  |policys
+|  ----  | ----  |  ----  | ----  |  ----  |  ----  |
 | name  | true | string  | - | 角色名  |  -  |
 | statement  | false | [statement](#statement)  | - | 角色授权 statement  |  请参考[权限策略基本元素](https://help.aliyun.com/document_detail/93738.html)  |
 | policys  | true | list<string> 、List<[policy](#policy)>  | - | 角色名  |  -  |
@@ -41,7 +41,7 @@
 ##### policy
 
 |  参数   |  必填  |  类型  | 取值  |  描述  |  备注  |    
-|  ----  | ----  |  ----  | ----  |  ----  |  ----  |policys
+|  ----  | ----  |  ----  | ----  |  ----  |  ----  |
 | policyName  | true | string  | - | 策略名称  |  -  |
 | policyType  | false | Custom 、System   | - | 策略类型  | 和 statement 有一个必填，如果填写则认为是已经存在的，直接复用，优先级高于statement |
 | statement  | false | [statement](#statement)  | - | 角色授权 statement  |  和 policyType 有一个必填，如果填写则创建，具体配置请参考[权限策略基本元素](https://help.aliyun.com/document_detail/93738.html)  |
