@@ -107,34 +107,30 @@ var Component = /** @class */ (function () {
             });
         });
     };
-    Component.tryContainerAcceleration = function (profile, properties) {
-        var _a, _b, _c;
+    Component.tryContainerAcceleration = function (profile, region, serviceName, functionName, customContainerConfig) {
         return __awaiter(this, void 0, void 0, function () {
-            var region, serviceName, functionName, customContainerConfig, fc, ex_2;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
+            var fc, ex_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
-                        region = properties.region;
-                        serviceName = (_a = properties.service) === null || _a === void 0 ? void 0 : _a.name;
-                        functionName = ((_b = properties.function) === null || _b === void 0 ? void 0 : _b.name) || serviceName;
-                        customContainerConfig = (_c = properties.function) === null || _c === void 0 ? void 0 : _c.customContainerConfig;
                         if (!serviceName || !customContainerConfig) {
                             return [2 /*return*/];
                         }
                         fc = client_1.default.fc(region, profile);
-                        _d.label = 1;
+                        _a.label = 1;
                     case 1:
-                        _d.trys.push([1, 3, , 4]);
+                        _a.trys.push([1, 3, , 4]);
                         return [4 /*yield*/, fc.updateFunction(serviceName, functionName, {
                                 customContainerConfig: __assign({ accelerationType: 'Default' }, customContainerConfig)
                             })];
                     case 2:
-                        _d.sent();
-                        return [3 /*break*/, 4];
+                        _a.sent();
+                        this.logger.debug('Try container acceleration success.');
+                        return [2 /*return*/, true];
                     case 3:
-                        ex_2 = _d.sent();
+                        ex_2 = _a.sent();
                         this.logger.debug("Try container acceleration error: " + ex_2);
-                        return [3 /*break*/, 4];
+                        return [2 /*return*/, false];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -147,4 +143,4 @@ var Component = /** @class */ (function () {
     return Component;
 }());
 exports.default = Component;
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZmMuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi9zcmMvbGliL2ZyYW1ld29yay9mYy50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBQUFBLDBEQUE4QztBQUU5QywyQ0FBeUM7QUFFekMscURBQStCO0FBRy9CO0lBQUE7SUFvQ0EsQ0FBQztJQWpDYyxtQkFBUyxHQUF0QixVQUF1QixNQUFjLEVBQUUsT0FBcUI7Ozs7Ozt3QkFDcEQsRUFBRSxHQUFHLGdCQUFNLENBQUMsRUFBRSxDQUFDLE1BQU0sRUFBRSxPQUFPLENBQUMsQ0FBQzs7Ozt3QkFHdkIscUJBQU0sRUFBRSxDQUFDLGtCQUFrQixFQUFFLEVBQUE7O3dCQUFwQyxJQUFJLEdBQUcsU0FBNkI7d0JBQzFDLElBQUksQ0FBQyxNQUFNLENBQUMsS0FBSyxDQUFDLG9DQUFrQyxJQUFJLENBQUMsU0FBUyxDQUFDLElBQUksQ0FBRyxDQUFDLENBQUM7d0JBQzVFLHNCQUFPLElBQUksQ0FBQyxJQUFJLENBQUMsWUFBWSxDQUFDLENBQUMsQ0FBQyxFQUFDOzs7d0JBRWpDLE1BQU0sSUFBRSxDQUFDOzs7OztLQUVaO0lBRVksa0NBQXdCLEdBQXJDLFVBQXNDLE9BQXFCLEVBQUUsVUFBdUI7Ozs7Ozs7d0JBQzVFLE1BQU0sR0FBRyxVQUFVLENBQUMsTUFBTSxDQUFDO3dCQUMzQixXQUFXLFNBQUcsVUFBVSxDQUFDLE9BQU8sMENBQUUsSUFBSSxDQUFDO3dCQUN2QyxZQUFZLEdBQUcsT0FBQSxVQUFVLENBQUMsUUFBUSwwQ0FBRSxJQUFJLEtBQUksV0FBVyxDQUFDO3dCQUN4RCxxQkFBcUIsU0FBRyxVQUFVLENBQUMsUUFBUSwwQ0FBRSxxQkFBcUIsQ0FBQzt3QkFDekUsSUFBSSxDQUFDLFdBQVcsSUFBSSxDQUFDLHFCQUFxQixFQUFFOzRCQUMxQyxzQkFBTzt5QkFDUjt3QkFFSyxFQUFFLEdBQUcsZ0JBQU0sQ0FBQyxFQUFFLENBQUMsTUFBTSxFQUFFLE9BQU8sQ0FBQyxDQUFDOzs7O3dCQUVwQyxxQkFBTSxFQUFFLENBQUMsY0FBYyxDQUFDLFdBQVcsRUFBRSxZQUFZLEVBQUU7Z0NBQ2pELHFCQUFxQixhQUNuQixnQkFBZ0IsRUFBRSxTQUFTLElBQ3hCLHFCQUFxQixDQUN6Qjs2QkFDRixDQUFDLEVBQUE7O3dCQUxGLFNBS0UsQ0FBQzs7Ozt3QkFFSCxJQUFJLENBQUMsTUFBTSxDQUFDLEtBQUssQ0FBQyx1Q0FBcUMsSUFBSSxDQUFDLENBQUM7Ozs7OztLQUVoRTtJQWxDc0I7UUFBdEIsSUFBSSxDQUFDLE9BQU8sQ0FBQyxrQkFBTyxDQUFDOzttQ0FBNkI7SUFtQ3JELGdCQUFDO0NBQUEsQUFwQ0QsSUFvQ0M7a0JBcENvQixTQUFTIn0=
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZmMuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi9zcmMvbGliL2ZyYW1ld29yay9mYy50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBQUFBLDBEQUE4QztBQUU5QywyQ0FBeUM7QUFFekMscURBQStCO0FBRS9CO0lBQUE7SUFtQ0EsQ0FBQztJQWhDYyxtQkFBUyxHQUF0QixVQUF1QixNQUFjLEVBQUUsT0FBcUI7Ozs7Ozt3QkFDcEQsRUFBRSxHQUFHLGdCQUFNLENBQUMsRUFBRSxDQUFDLE1BQU0sRUFBRSxPQUFPLENBQUMsQ0FBQzs7Ozt3QkFHdkIscUJBQU0sRUFBRSxDQUFDLGtCQUFrQixFQUFFLEVBQUE7O3dCQUFwQyxJQUFJLEdBQUcsU0FBNkI7d0JBQzFDLElBQUksQ0FBQyxNQUFNLENBQUMsS0FBSyxDQUFDLG9DQUFrQyxJQUFJLENBQUMsU0FBUyxDQUFDLElBQUksQ0FBRyxDQUFDLENBQUM7d0JBQzVFLHNCQUFPLElBQUksQ0FBQyxJQUFJLENBQUMsWUFBWSxDQUFDLENBQUMsQ0FBQyxFQUFDOzs7d0JBRWpDLE1BQU0sSUFBRSxDQUFDOzs7OztLQUVaO0lBRVksa0NBQXdCLEdBQXJDLFVBQXNDLE9BQXFCLEVBQUUsTUFBYyxFQUFFLFdBQW1CLEVBQUUsWUFBb0IsRUFBRSxxQkFBcUI7Ozs7Ozt3QkFDM0ksSUFBSSxDQUFDLFdBQVcsSUFBSSxDQUFDLHFCQUFxQixFQUFFOzRCQUMxQyxzQkFBTzt5QkFDUjt3QkFFSyxFQUFFLEdBQUcsZ0JBQU0sQ0FBQyxFQUFFLENBQUMsTUFBTSxFQUFFLE9BQU8sQ0FBQyxDQUFDOzs7O3dCQUVwQyxxQkFBTSxFQUFFLENBQUMsY0FBYyxDQUFDLFdBQVcsRUFBRSxZQUFZLEVBQUU7Z0NBQ2pELHFCQUFxQixhQUNuQixnQkFBZ0IsRUFBRSxTQUFTLElBQ3hCLHFCQUFxQixDQUN6Qjs2QkFDRixDQUFDLEVBQUE7O3dCQUxGLFNBS0UsQ0FBQzt3QkFDSCxJQUFJLENBQUMsTUFBTSxDQUFDLEtBQUssQ0FBQyxxQ0FBcUMsQ0FBQyxDQUFDO3dCQUN6RCxzQkFBTyxJQUFJLEVBQUM7Ozt3QkFFWixJQUFJLENBQUMsTUFBTSxDQUFDLEtBQUssQ0FBQyx1Q0FBcUMsSUFBSSxDQUFDLENBQUM7d0JBQzdELHNCQUFPLEtBQUssRUFBQzs7Ozs7S0FFaEI7SUFqQ3NCO1FBQXRCLElBQUksQ0FBQyxPQUFPLENBQUMsa0JBQU8sQ0FBQzs7bUNBQTZCO0lBa0NyRCxnQkFBQztDQUFBLEFBbkNELElBbUNDO2tCQW5Db0IsU0FBUyJ9

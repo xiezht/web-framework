@@ -1,5 +1,6 @@
 import fse from 'fs-extra';
 import inquirer from 'inquirer';
+import got from 'got';
 import { CONTEXT, STORENAME, CONTEXT_NAME } from '../constant';
 import { ILogConfig } from '../interface/service';
 import { IInputs } from '../interface/inputs';
@@ -80,19 +81,28 @@ export function getLogConfig(logConfig: 'auto' | 'Auto' | ILogConfig, autoName: 
   throw new Error('service/logConfig configuration error');
 }
 
+export async function requestDomains(domainName) {
+  try {
+    await got(domainName, { timeout: 10 });
+  } catch(ex) {
+    Logger.debug(CONTEXT, ex.toString());
+  }
+}
 
 export async function getImageAndReport(inputs: IInputs, uid: string, command: string) {
   reportComponent(CONTEXT_NAME, { command, uid });
   
+  Logger.debug(CONTEXT, `get image customContainerConfig: ${JSON.stringify(inputs.props.function.customContainerConfig)}, runtime: ${inputs.props.runtime}, region: ${inputs.props.region}.`);
   if (!inputs.props.function.customContainerConfig.image) {
     const { image } = await request('https://registry.serverlessfans.cn/registry/image', {
       method: 'post',
       body: {
         region: inputs.props.region,
-        runtime: inputs.props.runtime
+        runtime: inputs.props.runtime === 'php7.2' ? 'php7' : inputs.props.runtime
       },
       form: true
     });
+    Logger.debug(CONTEXT, `auto image is ${image}.`);
 
     inputs.props.function.customContainerConfig.image = image;
   }

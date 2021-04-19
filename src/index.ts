@@ -5,7 +5,7 @@ import {
   help,
   commandParse,
   loadComponent,
-  request,
+  spinner,
 } from '@serverless-devs/core';
 import fse from 'fs-extra';
 import os from 'os';
@@ -13,7 +13,7 @@ import path from 'path';
 import _ from 'lodash';
 import { HELP, CONTEXT } from './constant';
 import { ICredentials, IInputs, ICommandParse } from './interface/inputs';
-import { genStackId, getImageAndReport } from './lib/utils';
+import { genStackId, getImageAndReport, requestDomains } from './lib/utils';
 import { cpPulumiCodeFiles, genPulumiInputs } from './lib/pulumi';
 import * as shell from 'shelljs';
 import NasComponent from './lib/nasComponent';
@@ -85,11 +85,19 @@ export default class Component {
 
     await NasComponent.init(properties, _.cloneDeep(inputs));
 
-    await Fc.tryContainerAcceleration(credentials, properties);
+    const vm = spinner('Try container acceleration');
+    const flag = await Fc.tryContainerAcceleration(credentials, properties.region, fcConfig.service.name, fcConfig.function.name, fcConfig.function.customContainerConfig);
 
-    if (fcConfig.customDomains) {
-      fcConfig.customDomains?.forEach(({ domainName }) => request(domainName))
+    if (fcConfig.customDomains && fcConfig.customDomains[0].domainName) {
+      await requestDomains(fcConfig.customDomains[0].domainName);
     }
+
+    if (flag) {
+      vm.succeed();
+    } else {
+      vm.fail();
+    }
+    
 
     // 返回结果
     return {

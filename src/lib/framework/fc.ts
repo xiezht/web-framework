@@ -3,7 +3,6 @@ import _ from 'lodash';
 import { CONTEXT } from '../../constant';
 import { ICredentials } from '../../interface/inputs';
 import Client from '../client';
-import { IProperties } from '../../interface/inputs';
 
 export default class Component {
   @core.HLogger(CONTEXT) static logger: core.ILogger;
@@ -20,11 +19,7 @@ export default class Component {
     }
   }
 
-  static async tryContainerAcceleration(profile: ICredentials, properties: IProperties) {
-    const region = properties.region;
-    const serviceName = properties.service?.name;
-    const functionName = properties.function?.name || serviceName;
-    const customContainerConfig = properties.function?.customContainerConfig;
+  static async tryContainerAcceleration(profile: ICredentials, region: string, serviceName: string, functionName: string, customContainerConfig) {
     if (!serviceName || !customContainerConfig) {
       return;
     }
@@ -37,8 +32,11 @@ export default class Component {
           ...customContainerConfig,
         }
       });
+      this.logger.debug('Try container acceleration success.');
+      return true;
     } catch (ex) {
       this.logger.debug(`Try container acceleration error: ${ex}`);
+      return false;
     }
   }
 }
