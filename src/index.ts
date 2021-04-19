@@ -24,7 +24,10 @@ import Fc from './lib/framework/fc';
 import Build from './lib/tarnsform/toBuild';
 
 const PULUMI_CACHE_DIR: string = path.join(os.homedir(), '.s', 'cache', 'pulumi', 'web-framework');
-const PULUMI_LOCAL_PLUGIN_PATH = path.join(__dirname, 'lib', 'utils', 'pulumi-plugin');
+
+const ALICLOUD_PLUGIN_VERSION = process.env.ALICLOUD_PLUGIN_VERSION || 'v2.38.0';
+const ALICLOUD_PLUGIN_ZIP_FILE_NAME = `pulumi-resource-alicloud-${ALICLOUD_PLUGIN_VERSION}.tgz`;
+const ALICLOUD_PLUGIN_DOWNLOAD_URL = `serverless-pulumi.oss-accelerate.aliyuncs.com/alicloud-plugin/${ALICLOUD_PLUGIN_ZIP_FILE_NAME}`;
 
 export default class Component {
   @HLogger(CONTEXT) logger: ILogger;
@@ -70,7 +73,9 @@ export default class Component {
 
     // 部署 fc 资源
     const pulumiComponentIns = await loadComponent('devsapp/pulumi-alibaba');
-    await pulumiComponentIns.installPluginFromLocal({ args: PULUMI_LOCAL_PLUGIN_PATH });
+    await pulumiComponentIns.installPluginFromUrl({
+      props: { url: ALICLOUD_PLUGIN_DOWNLOAD_URL, version: ALICLOUD_PLUGIN_VERSION }
+    });
 
     const upRes = await pulumiComponentIns.up(pulumiInputs);
     if (upRes.stderr && upRes.stderr !== '') {
@@ -126,7 +131,9 @@ export default class Component {
       pulumiStackDir,
     );
     const pulumiComponentIns = await loadComponent('devsapp/pulumi-alibaba');
-    await pulumiComponentIns.installPluginFromLocal({ args: PULUMI_LOCAL_PLUGIN_PATH });
+    await pulumiComponentIns.installPluginFromUrl({
+      props: { url: ALICLOUD_PLUGIN_DOWNLOAD_URL, version: ALICLOUD_PLUGIN_VERSION }
+    });
     const upRes = await pulumiComponentIns.destroy(pulumiInputs);
     if (upRes.stderr && upRes.stderr !== '') {
       this.logger.error(`destroy error: ${upRes.stderr}`);
@@ -147,7 +154,7 @@ export default class Component {
 
   async logs(inputs: IInputs) {
     if (!inputs.props.service?.logConfig) {
-      throw new Error('To use this function, you need to configure the log function in the service, please refer to https://github.com/devsapp/web-framework/blob/master/readme.md#syml');
+      throw new Error('To use this function, you need to configure the log function in the service, please refer to https://github.com/devsapp/web-framework/blob/master/readme.md#service');
     }
 
     inputs.credentials = await getCredential(inputs.project.access);
