@@ -5,6 +5,7 @@ import {
   help,
   commandParse,
   loadComponent,
+  request,
 } from '@serverless-devs/core';
 import fse from 'fs-extra';
 import os from 'os';
@@ -81,8 +82,17 @@ export default class Component {
 
     await Fc.tryContainerAcceleration(credentials, properties);
 
+    if (fcConfig.customDomains) {
+      fcConfig.customDomains?.forEach(({ domainName }) => request(domainName))
+    }
+
     // 返回结果
-    return fcConfig.customDomains?.map(({ domainName }) => domainName);
+    return {
+      region: properties.region,
+      serviceName: fcConfig.service.name,
+      functionName: fcConfig.function.name,
+      customDomains: fcConfig.customDomains?.map(({ domainName }) => domainName)
+    };
   }
 
   async remove(inputs: IInputs) {
@@ -137,7 +147,7 @@ export default class Component {
 
   async logs(inputs: IInputs) {
     if (!inputs.props.service?.logConfig) {
-      throw new Error('The service is not configured to logConfig.');
+      throw new Error('To use this function, you need to configure the log function in the service, please refer to https://github.com/devsapp/web-framework/blob/master/readme.md#syml');
     }
 
     inputs.credentials = await getCredential(inputs.project.access);
