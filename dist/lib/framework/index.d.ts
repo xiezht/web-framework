@@ -12,6 +12,8 @@ export default class Component {
     readonly functionName: string;
     constructor(properties: IProperties, configFile: string, accountID: string);
     createConfigFile(inputs: any, assumeYes: boolean): Promise<any>;
+    delFunctionInConfFile(inputs: any, assumeYes: boolean): Promise<any>;
+    getConfig(inputs: any, assumeYes: boolean): Promise<any>;
     getService(): import("../../interface/service").IServiceConfig;
     getFunctonConfig(): import("../../interface/function").IFunctionConfig;
     getTrigger(): {
@@ -25,16 +27,18 @@ export default class Component {
         network: {
             cidrBlock: string;
             vpc_name: string;
+            description: string;
         };
         switch: {
             vswitch_name: string;
+            description: string;
             cidrBlock: string;
             vpcId: string;
             availabilityZone: string;
         };
         securityGroup: {
-            description: string;
             name: string;
+            description: string;
             securityGroupType: string;
             InnerAccessPolicy: string;
             vpcId: string;

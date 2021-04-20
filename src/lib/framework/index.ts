@@ -1,12 +1,13 @@
 import * as core from '@serverless-devs/core';
 import _ from 'lodash';
+import fse from 'fs-extra';
 import * as IReturn from './interface';
 import { CONTEXT, getAutoName, STORENAME, HTTP_CONFIG } from '../../constant';
 import Domain from './domain';
 import Role from './role';
 import Fc from './fc';
 import StorageType from './storageType';
-import { writeStrToFile, isAuto } from '../utils';
+import { writeStrToFile, isAuto, isFile } from '../utils';
 import { IProperties } from '../../interface/inputs';
 
 export default class Component {
@@ -34,6 +35,42 @@ export default class Component {
   }
 
   async createConfigFile(inputs, assumeYes: boolean): Promise<any> {
+    const config = await this.getConfig(inputs, assumeYes);
+
+    const content = _.clone(config);
+    const functionName = content.function.name;
+    const curConfig = {
+      function: content.function,
+      trigger: content.trigger,
+      customDomains: content.customDomains,
+    };
+    delete content.function;
+    delete content.trigger;
+    delete content.customDomains;
+    if (await isFile(this.configFile)) {
+      const oldConfig = await fse.readJSON(this.configFile);
+      content.functions = oldConfig.functions;
+      content.functions[functionName] = curConfig;
+    } else {
+      content.functions = { [functionName]: curConfig };
+    }
+
+    await writeStrToFile(this.configFile, JSON.stringify(content, null, '  '), 'w', 0o777);
+    this.logger.debug(`${this.configFile} created done!`);
+
+    return config;
+  }
+
+  async delFunctionInConfFile(inputs, assumeYes: boolean): Promise<any> {
+    const config = await this.getConfig(inputs, assumeYes);
+    
+    await writeStrToFile(this.configFile, _.clone(config), 'w', 0o777);
+    this.logger.debug(`${this.configFile} created done!`);
+
+    return config;
+  }
+
+  async getConfig(inputs, assumeYes: boolean) {
     this.logger.debug(`${this.configFile} not exist, creating...`);
 
     const config: any = {
@@ -53,16 +90,13 @@ export default class Component {
 
     if (!service.role || isAuto(service.role)) {
       Object.assign(config, Role.genAutoRole(this.autoName));
-    } else {
+      delete config.service.role;
+    } if (!_.isString(service.role || '')) {
       Object.assign(config, Role.getRole(service.role));
+      delete config.service.role;
     }
-    delete config.service.role;
 
     config.customDomains = await Domain.get(inputs);
-
-    await writeStrToFile(this.configFile, JSON.stringify(config, null, '  '), 'w', 0o777);
-    this.logger.debug(`${this.configFile} created done!`);
-
     return config;
   }
 
@@ -132,16 +166,18 @@ export default class Component {
       network: {
         cidrBlock: '10.0.0.0/8',
         vpc_name: this.autoName,
+        description: this.autoName,
       },
       switch: {
         vswitch_name: this.autoName,
+        description: this.autoName,
         cidrBlock: '10.0.0.0/16',
         vpcId: '',
         availabilityZone: await Fc.getZoneId(this.properties.region, inputs.Credentials),
       },
       securityGroup: {
-        description: 'web-framework-generate',
         name: this.autoName,
+        description: this.autoName,
         securityGroupType: 'normal',
         InnerAccessPolicy: 'Accept',
         vpcId: '',

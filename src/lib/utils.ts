@@ -5,12 +5,16 @@ import { CONTEXT, STORENAME, CONTEXT_NAME } from '../constant';
 import { ILogConfig } from '../interface/service';
 import { IInputs } from '../interface/inputs';
 import { Logger, reportComponent, request } from '@serverless-devs/core';
+import _ from 'lodash';
 
 export function genStackId(accountId: string, region: string, serviceName: string): string {
   return `${accountId}-${region}-${serviceName}`;
 }
 
 export async function isFile(inputPath: string): Promise<boolean> {
+  if (!await fse.pathExists(inputPath)) {
+    return false;
+  }
   const stats = await fse.lstat(inputPath);
   return stats.isFile();
 }
@@ -36,6 +40,25 @@ export async function writeStrToFile(
       reject(error);
     });
   });
+}
+
+export async function delFunctionInConfFile(
+  targetFile: string,
+  content: any,
+  flags?: string,
+  mode?: number
+): Promise<boolean> {
+  const { functionName } = content;
+  const config = await fse.readJSON(targetFile);
+
+  delete config.functions[functionName];
+
+  if (!_.isEmpty(config.functions)) {
+    await writeStrToFile(targetFile, JSON.stringify(config, null, '  '), flags, mode);
+    return true;
+  }
+
+  return true;
 }
 
 function isInteractiveEnvironment(): boolean {

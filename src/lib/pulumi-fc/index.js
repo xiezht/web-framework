@@ -10,12 +10,10 @@ if (fse.pathExistsSync(configFile)) {
     nas,
     log,
     service,
-    function: functionConfig,
-    trigger,
+    functions,
     role,
     rolePolicy,
-    rolePolicyAttachments,
-    customDomains
+    rolePolicyAttachments
   } = JSON.parse(fse.readFileSync(configFile, { encoding: 'utf-8' }));
 
   const dependsOnRam = [];
@@ -102,22 +100,24 @@ if (fse.pathExistsSync(configFile)) {
     },
     role: ram.arn
   }, { dependsOn: [v, vs, sg, fs, mt, ...dependsOnRam] });
-  const fcFunc = new alicloud.fc.Function(functionConfig.name, {
-    ...functionConfig,
-    service: fcService.name,
-  }, { dependsOn: [fcService], parent: fcService });
-  const fcTrigger = new alicloud.fc.Trigger(trigger.name, {
-    ...trigger,
-    service: fcService.name,
-    function: fcFunc.name,
-  }, { dependsOn: [fcService, fcFunc], parent: fcFunc });
 
-  if (customDomains) {
-    let domainNames = [];
-    customDomains.forEach(customDomain => {
-      new alicloud.fc.CustomDomain(customDomain.domainName, customDomain, { dependsOn: [fcService, fcFunc, fcTrigger] });
-      domainNames.push(customDomain.domainName);
-    })
-    return domainNames;
+  for (const funKey in functions) {
+    const { function: functionConfig, trigger, customDomains } = functions[funKey];
+    const fcFunc = new alicloud.fc.Function(functionConfig.name, {
+      ...functionConfig,
+      service: fcService.name,
+    }, { dependsOn: [fcService], parent: fcService });
+
+    const fcTrigger = new alicloud.fc.Trigger(`${functionConfig.name}-${trigger.name}`, {
+      ...trigger,
+      service: fcService.name,
+      function: fcFunc.name,
+    }, { dependsOn: [fcService, fcFunc], parent: fcFunc });
+  
+    if (customDomains) {
+      customDomains.forEach(customDomain => {
+        new alicloud.fc.CustomDomain(customDomain.domainName, customDomain, { dependsOn: [fcService, fcFunc, fcTrigger] });
+      })
+    }
   }
 }

@@ -13,7 +13,7 @@ import path from 'path';
 import _ from 'lodash';
 import { HELP, CONTEXT } from './constant';
 import { ICredentials, IInputs, ICommandParse } from './interface/inputs';
-import { genStackId, getImageAndReport, requestDomains } from './lib/utils';
+import { genStackId, getImageAndReport, delFunctionInConfFile, isFile, requestDomains } from './lib/utils';
 import { cpPulumiCodeFiles, genPulumiInputs } from './lib/pulumi';
 import * as shell from 'shelljs';
 import NasComponent from './lib/nasComponent';
@@ -28,6 +28,8 @@ const PULUMI_CACHE_DIR: string = path.join(os.homedir(), '.s', 'cache', 'pulumi'
 const ALICLOUD_PLUGIN_VERSION = process.env.ALICLOUD_PLUGIN_VERSION || 'v2.38.0';
 const ALICLOUD_PLUGIN_ZIP_FILE_NAME = `pulumi-resource-alicloud-${ALICLOUD_PLUGIN_VERSION}.tgz`;
 const ALICLOUD_PLUGIN_DOWNLOAD_URL = `serverless-pulumi.oss-accelerate.aliyuncs.com/alicloud-plugin/${ALICLOUD_PLUGIN_ZIP_FILE_NAME}`;
+
+process.setMaxListeners(0);
 
 export default class Component {
   @HLogger(CONTEXT) logger: ILogger;
@@ -98,7 +100,6 @@ export default class Component {
     } else {
       vm.fail();
     }
-    
 
     // 返回结果
     return {
@@ -124,14 +125,21 @@ export default class Component {
     await getImageAndReport(inputs, credentials.AccountID, 'remove');
 
     const properties = inputs.props;
+    const serviceName = properties.service.name;
+    const functionName = properties.function.name || serviceName;
     const stackId = genStackId(credentials.AccountID, properties.region, properties.service.name);
     const pulumiStackDir = path.join(PULUMI_CACHE_DIR, stackId);
 
-    try {
-      await NasComponent.remove(properties, _.cloneDeep(inputs));
-    } catch (ex) {
-      this.logger.debug(ex);
+    if (await isFile(pulumiStackDir)) {
+      this.logger.error('Please deploy resource first');
+      return;
     }
+
+    // try {
+    //   await NasComponent.remove(properties, _.cloneDeep(inputs));
+    // } catch (ex) {
+    //   this.logger.debug(ex);
+    // }
 
     const pulumiInputs = genPulumiInputs(
       inputs,
@@ -143,7 +151,13 @@ export default class Component {
     await pulumiComponentIns.installPluginFromUrl({
       props: { url: ALICLOUD_PLUGIN_DOWNLOAD_URL, version: ALICLOUD_PLUGIN_VERSION }
     });
-    const upRes = await pulumiComponentIns.destroy(pulumiInputs);
+
+    let upRes;
+    if (await delFunctionInConfFile(path.join(pulumiStackDir, 'config.json'), { serviceName, functionName }, 'w', 0o777)) {
+      upRes = await pulumiComponentIns.destroy(pulumiInputs);
+    } else {
+      upRes = await pulumiComponentIns.up(pulumiInputs);
+    }
     if (upRes.stderr && upRes.stderr !== '') {
       this.logger.error(`destroy error: ${upRes.stderr}`);
       return;

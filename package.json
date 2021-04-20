@@ -5,7 +5,7 @@
   "dependencies": {
     "@alicloud/fc2": "^2.2.2",
     "@alicloud/pop-core": "^1.7.10",
-    "@serverless-devs/core": "^0.0.65",
+    "@serverless-devs/core": "^0.0.68",
     "deep-equal": "^2.0.5",
     "fs-extra": "^9.1.0",
     "inquirer": "^8.0.0",
@@ -32,8 +32,7 @@
     "dev": "npx tsc -w -p tsconfig.json",
     "prebuild": "rimraf dist",
     "copy-pulumi-fc": "mkdir -p dist/lib/pulumi-fc && cp -rf src/lib/pulumi-fc/* dist/lib/pulumi-fc",
-    "copy-pulumi-install": "mkdir -p dist/scripts && cp -rf scripts/* dist/scripts/",
-    "build:ts": "npx tsc -p tsconfig.json && npm run copy-pulumi-fc && npm run copy-pulumi-install",
+    "build:ts": "npx tsc -p tsconfig.json && npm run copy-pulumi-fc",
     "build:component": "npx webpack --mode=production",
     "test": "jest",
     "test:cov": "jest --coverage",
