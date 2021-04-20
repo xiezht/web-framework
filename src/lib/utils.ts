@@ -55,7 +55,7 @@ export async function delFunctionInConfFile(
 
   if (!_.isEmpty(config.functions)) {
     await writeStrToFile(targetFile, JSON.stringify(config, null, '  '), flags, mode);
-    return true;
+    return false;
   }
 
   return true;
