@@ -24,29 +24,33 @@ if (fse.pathExistsSync(configFile)) {
 
   const dependsOnRam = [];
   const dependsOnPolicy = [];
-  const ram = new alicloud.ram.Role(role.name, role, { customTimeouts: defaultCustomTimeouts });
-  dependsOnRam.push(ram);
-
-  if (rolePolicy) {
-    for (const policy of rolePolicy) {
-      const p = new alicloud.ram.Policy(policy.policyName, policy, { dependsOn: [ram], customTimeouts: defaultCustomTimeouts });
-      dependsOnPolicy.push(p);
-      dependsOnRam.push(p);
+  // 创建角色相关
+  let arn = service.role;
+  if (role) {
+    const ram = new alicloud.ram.Role(role.name, role, { customTimeouts: defaultCustomTimeouts });
+    dependsOnRam.push(ram);
+  
+    if (rolePolicy) {
+      for (const policy of rolePolicy) {
+        const p = new alicloud.ram.Policy(policy.policyName, policy, { dependsOn: [ram], customTimeouts: defaultCustomTimeouts });
+        dependsOnPolicy.push(p);
+        dependsOnRam.push(p);
+      }
     }
+  
+    for (const rolePolicyAttachment of rolePolicyAttachments) {
+      const policy = new alicloud.ram.RolePolicyAttachment(rolePolicyAttachment.policyName, {
+        ...rolePolicyAttachment,
+        roleName: ram.name
+      }, { dependsOn: [...dependsOnPolicy, ram], parent: ram, customTimeouts: defaultCustomTimeouts });
+  
+      dependsOnRam.push(policy);
+    }
+    arn = ram.arn;
   }
 
-  for (const rolePolicyAttachment of rolePolicyAttachments) {
-    const policy = new alicloud.ram.RolePolicyAttachment(rolePolicyAttachment.policyName, {
-      ...rolePolicyAttachment,
-      roleName: ram.name
-    }, { dependsOn: [...dependsOnPolicy, ram], parent: ram, customTimeouts: defaultCustomTimeouts });
-
-    dependsOnRam.push(policy);
-  }
-
+  // 创建 log 相关
   let logConfig = service.logConfig;
-
-  // 创建 log
   if (log) {
     const { project, store, storeIndex } = log;
     const p = new alicloud.log.Project(project.name, project, { customTimeouts: defaultCustomTimeouts });
@@ -104,7 +108,7 @@ if (fse.pathExistsSync(configFile)) {
         }
       ]
     },
-    role: ram.arn
+    role: arn
   }, { dependsOn: [v, vs, sg, fs, mt, ...dependsOnRam], customTimeouts: defaultCustomTimeouts });
 
   for (const funKey in functions) {
