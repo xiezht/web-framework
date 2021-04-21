@@ -12,7 +12,6 @@ export default class Component {
     readonly functionName: string;
     constructor(properties: IProperties, configFile: string, accountID: string);
     createConfigFile(inputs: any, assumeYes: boolean): Promise<any>;
-    delFunctionInConfFile(inputs: any, assumeYes: boolean): Promise<any>;
     getConfig(inputs: any, assumeYes: boolean): Promise<any>;
     getService(): import("../../interface/service").IServiceConfig;
     getFunctonConfig(): import("../../interface/function").IFunctionConfig;

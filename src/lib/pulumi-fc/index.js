@@ -2,6 +2,12 @@ const path = require('path');
 const fse = require('fs-extra');
 const alicloud = require('@pulumi/alicloud');
 
+const defaultTimeout = '5m';
+const defaultCustomTimeouts = {
+  create: defaultTimeout,
+  update: defaultTimeout,
+  delete: defaultTimeout,
+};
 const configFile = path.join(__dirname, 'config.json');
 
 if (fse.pathExistsSync(configFile)) {
@@ -18,12 +24,12 @@ if (fse.pathExistsSync(configFile)) {
 
   const dependsOnRam = [];
   const dependsOnPolicy = [];
-  const ram = new alicloud.ram.Role(role.name, role);
+  const ram = new alicloud.ram.Role(role.name, role, { customTimeouts: defaultCustomTimeouts });
   dependsOnRam.push(ram);
 
   if (rolePolicy) {
     for (const policy of rolePolicy) {
-      const p = new alicloud.ram.Policy(policy.policyName, policy, { dependsOn: [ram] });
+      const p = new alicloud.ram.Policy(policy.policyName, policy, { dependsOn: [ram], customTimeouts: defaultCustomTimeouts });
       dependsOnPolicy.push(p);
       dependsOnRam.push(p);
     }
@@ -33,7 +39,7 @@ if (fse.pathExistsSync(configFile)) {
     const policy = new alicloud.ram.RolePolicyAttachment(rolePolicyAttachment.policyName, {
       ...rolePolicyAttachment,
       roleName: ram.name
-    }, { dependsOn: [...dependsOnPolicy, ram], parent: ram });
+    }, { dependsOn: [...dependsOnPolicy, ram], parent: ram, customTimeouts: defaultCustomTimeouts });
 
     dependsOnRam.push(policy);
   }
@@ -43,16 +49,16 @@ if (fse.pathExistsSync(configFile)) {
   // 创建 log
   if (log) {
     const { project, store, storeIndex } = log;
-    const p = new alicloud.log.Project(project.name, project);
+    const p = new alicloud.log.Project(project.name, project, { customTimeouts: defaultCustomTimeouts });
     const s = new alicloud.log.Store(store.name, {
       ...store,
       project: p.name,
-    }, { dependsOn: [p, ...dependsOnRam], parent: p });
+    }, { dependsOn: [p, ...dependsOnRam], parent: p, customTimeouts: defaultCustomTimeouts });
     new alicloud.log.StoreIndex(store.name, {
       ...storeIndex,
       project: p.name,
       logstore: s.name
-    }, { dependsOn: [p, s, ...dependsOnRam], parent: s });
+    }, { dependsOn: [p, s, ...dependsOnRam], parent: s, customTimeouts: defaultCustomTimeouts });
     
     logConfig = {
       project: p.name,
@@ -62,15 +68,15 @@ if (fse.pathExistsSync(configFile)) {
 
   // 创建 vpc
   const { network, switch: vswitch, securityGroup } = vpc;
-  const v = new alicloud.vpc.Network(network.vpc_name, network);
+  const v = new alicloud.vpc.Network(network.vpc_name, network, { dependsOn: dependsOnRam, customTimeouts: defaultCustomTimeouts });
   const vs = new alicloud.vpc.Switch(vswitch.vswitch_name, {
     ...vswitch,
     vpcId: v.id
-  }, { dependsOn: [v, ...dependsOnRam], parent: v });
+  }, { dependsOn: [v, ...dependsOnRam], parent: v, customTimeouts: defaultCustomTimeouts });
   const sg = new alicloud.ecs.SecurityGroup(securityGroup.name, {
     ...securityGroup,
     vpcId: v.id
-  }, { dependsOn: [v, ...dependsOnRam], parent: v });
+  }, { dependsOn: [v, ...dependsOnRam], parent: v, customTimeouts: defaultCustomTimeouts });
 
   // 创建 nas
   const { fileSystem, mountTarget } = nas;
@@ -79,7 +85,7 @@ if (fse.pathExistsSync(configFile)) {
     ...mountTarget,
     vswitchId: vs.id,
     fileSystemId: fs.id
-  }, { dependsOn: [fs, vs, ...dependsOnRam], parent: fs });
+  }, { dependsOn: [fs, vs, ...dependsOnRam], parent: fs, customTimeouts: defaultCustomTimeouts });
 
   const fcService = new alicloud.fc.Service(service.name, {
     ...service,
@@ -99,24 +105,24 @@ if (fse.pathExistsSync(configFile)) {
       ]
     },
     role: ram.arn
-  }, { dependsOn: [v, vs, sg, fs, mt, ...dependsOnRam] });
+  }, { dependsOn: [v, vs, sg, fs, mt, ...dependsOnRam], customTimeouts: defaultCustomTimeouts });
 
   for (const funKey in functions) {
     const { function: functionConfig, trigger, customDomains } = functions[funKey];
     const fcFunc = new alicloud.fc.Function(functionConfig.name, {
       ...functionConfig,
       service: fcService.name,
-    }, { dependsOn: [fcService], parent: fcService });
+    }, { dependsOn: [fcService], parent: fcService, customTimeouts: defaultCustomTimeouts });
 
     const fcTrigger = new alicloud.fc.Trigger(`${functionConfig.name}-${trigger.name}`, {
       ...trigger,
       service: fcService.name,
       function: fcFunc.name,
-    }, { dependsOn: [fcService, fcFunc], parent: fcFunc });
+    }, { dependsOn: [fcService, fcFunc], parent: fcFunc, customTimeouts: defaultCustomTimeouts });
   
     if (customDomains) {
       customDomains.forEach(customDomain => {
-        new alicloud.fc.CustomDomain(customDomain.domainName, customDomain, { dependsOn: [fcService, fcFunc, fcTrigger] });
+        new alicloud.fc.CustomDomain(customDomain.domainName, customDomain, { dependsOn: [fcService, fcFunc, fcTrigger], customTimeouts: defaultCustomTimeouts });
       })
     }
   }

@@ -106,7 +106,7 @@ export function getLogConfig(logConfig: 'auto' | 'Auto' | ILogConfig, autoName: 
 
 export async function requestDomains(domainName) {
   try {
-    await got(domainName, { timeout: 10 });
+    await got(domainName, { timeout: 15 * 1000 });
   } catch(ex) {
     Logger.debug(CONTEXT, ex.toString());
   }

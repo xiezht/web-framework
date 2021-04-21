@@ -49,22 +49,17 @@ export default class Component {
     delete content.customDomains;
     if (await isFile(this.configFile)) {
       const oldConfig = await fse.readJSON(this.configFile);
-      content.functions = oldConfig.functions;
-      content.functions[functionName] = curConfig;
+      if (oldConfig.function) {
+        content.functions = { [functionName]: curConfig };
+      } else {
+        content.functions = oldConfig.functions;
+        content.functions[functionName] = curConfig;
+      }
     } else {
       content.functions = { [functionName]: curConfig };
     }
 
     await writeStrToFile(this.configFile, JSON.stringify(content, null, '  '), 'w', 0o777);
-    this.logger.debug(`${this.configFile} created done!`);
-
-    return config;
-  }
-
-  async delFunctionInConfFile(inputs, assumeYes: boolean): Promise<any> {
-    const config = await this.getConfig(inputs, assumeYes);
-    
-    await writeStrToFile(this.configFile, _.clone(config), 'w', 0o777);
     this.logger.debug(`${this.configFile} created done!`);
 
     return config;
