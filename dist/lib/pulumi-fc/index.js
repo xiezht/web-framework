@@ -84,7 +84,7 @@ if (fse.pathExistsSync(configFile)) {
 
   // 创建 nas
   const { fileSystem, mountTarget } = nas;
-  const fs = new alicloud.nas.FileSystem(fileSystem.storageType, fileSystem);
+  const fs = new alicloud.nas.FileSystem(fileSystem.storageType, fileSystem, { dependsOn: [vs], customTimeouts: defaultCustomTimeouts });
   const mt = new alicloud.nas.MountTarget(mountTarget.accessGroupName, {
     ...mountTarget,
     vswitchId: vs.id,

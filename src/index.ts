@@ -129,8 +129,9 @@ export default class Component {
     const functionName = properties.function.name || serviceName;
     const stackId = genStackId(credentials.AccountID, properties.region, properties.service.name);
     const pulumiStackDir = path.join(PULUMI_CACHE_DIR, stackId);
+    const pulumiStackFile = path.join(pulumiStackDir, 'config.json');
 
-    if (await isFile(pulumiStackDir)) {
+    if (await isFile(pulumiStackFile)) {
       this.logger.error('Please deploy resource first');
       return;
     }
@@ -153,8 +154,9 @@ export default class Component {
     });
 
     let upRes;
-    if (await delFunctionInConfFile(path.join(pulumiStackDir, 'config.json'), { serviceName, functionName }, 'w', 0o777)) {
+    if (await delFunctionInConfFile(pulumiStackFile, { serviceName, functionName }, 'w', 0o777)) {
       upRes = await pulumiComponentIns.destroy(pulumiInputs);
+      await fse.remove(pulumiStackFile);
     } else {
       upRes = await pulumiComponentIns.up(pulumiInputs);
     }

@@ -39,14 +39,14 @@ export default class Component {
       serviceName,
       functionName,
     );
-    this.logger.log(`nas component get src is: ${src}`);
+    this.logger.info(`nas component get src is: ${src}`);
 
     const { inputs, nas } = await this.transfromInputs(properties, v1Inputs);
 
     await nas.deploy(inputs);
 
     if (src) {
-      inputs.args = `-r ${src} nas:///${inputs.props.nasDir}`;
+      inputs.args = `-r ${src} nas:///${inputs.props.nasDir}/${functionName}`;
       this.logger.debug(`Cp cmd is: ${inputs.args}`);
       await nas.cp(inputs);
     }
