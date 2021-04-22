@@ -131,7 +131,7 @@ export default class Component {
     const pulumiStackDir = path.join(PULUMI_CACHE_DIR, stackId);
     const pulumiStackFile = path.join(pulumiStackDir, 'config.json');
 
-    if (await isFile(pulumiStackFile)) {
+    if (!await isFile(pulumiStackFile)) {
       this.logger.error('Please deploy resource first');
       return;
     }
