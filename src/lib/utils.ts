@@ -1,11 +1,22 @@
 import fse from 'fs-extra';
 import inquirer from 'inquirer';
 import axios from 'axios';
+import retry from 'promise-retry';
 import { CONTEXT, STORENAME, CONTEXT_NAME } from '../constant';
 import { ILogConfig } from '../interface/service';
 import { IInputs } from '../interface/inputs';
 import { Logger, reportComponent, request } from '@serverless-devs/core';
 import _ from 'lodash';
+
+export async function promiseRetry(fn: any): Promise<any> {
+  const retryOptions = {
+    retries: 2,
+    factor: 2,
+    minTimeout: 1 * 1000,
+    randomize: true,
+  };
+  return retry(fn, retryOptions);
+}
 
 export function genStackId(accountId: string, region: string, serviceName: string): string {
   return `${accountId}-${region}-${serviceName}`;

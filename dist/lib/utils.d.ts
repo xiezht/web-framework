@@ -1,5 +1,6 @@
 import { ILogConfig } from '../interface/service';
 import { IInputs } from '../interface/inputs';
+export declare function promiseRetry(fn: any): Promise<any>;
 export declare function genStackId(accountId: string, region: string, serviceName: string): string;
 export declare function isFile(inputPath: string): Promise<boolean>;
 export declare function isDir(inputPath: any): Promise<boolean>;

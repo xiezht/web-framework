@@ -13,7 +13,7 @@ import path from 'path';
 import _ from 'lodash';
 import { HELP, CONTEXT } from './constant';
 import { ICredentials, IInputs, ICommandParse } from './interface/inputs';
-import { genStackId, getImageAndReport, delFunctionInConfFile, isFile, requestDomains } from './lib/utils';
+import { genStackId, getImageAndReport, delFunctionInConfFile, isFile, requestDomains, promiseRetry } from './lib/utils';
 import { cpPulumiCodeFiles, genPulumiInputs } from './lib/pulumi';
 import * as shell from 'shelljs';
 import NasComponent from './lib/nasComponent';
@@ -28,8 +28,6 @@ const PULUMI_CACHE_DIR: string = path.join(os.homedir(), '.s', 'cache', 'pulumi'
 const ALICLOUD_PLUGIN_VERSION = process.env.ALICLOUD_PLUGIN_VERSION || 'v2.38.0';
 const ALICLOUD_PLUGIN_ZIP_FILE_NAME = `pulumi-resource-alicloud-${ALICLOUD_PLUGIN_VERSION}.tgz`;
 const ALICLOUD_PLUGIN_DOWNLOAD_URL = `serverless-pulumi.oss-accelerate.aliyuncs.com/alicloud-plugin/${ALICLOUD_PLUGIN_ZIP_FILE_NAME}`;
-
-process.setMaxListeners(0);
 
 export default class Component {
   @HLogger(CONTEXT) logger: ILogger;
@@ -79,11 +77,22 @@ export default class Component {
       props: { url: ALICLOUD_PLUGIN_DOWNLOAD_URL, version: ALICLOUD_PLUGIN_VERSION }
     });
 
-    const upRes = await pulumiComponentIns.up(pulumiInputs);
-    if (upRes.stderr && upRes.stderr !== '') {
-      this.logger.error(`deploy error: ${upRes.stderr}`);
-      return;
-    }
+    await promiseRetry(async (retry: any, times: number): Promise<any> => {
+      try {
+        const pulumiRes = await pulumiComponentIns.up(pulumiInputs);
+        if (pulumiRes?.stderr && pulumiRes?.stderr !== '') {
+          this.logger.error(`deploy error:\n ${pulumiRes?.stderr}`);
+          return;
+        }
+        // 返回结果
+        return pulumiRes?.stdout;
+      } catch (e) {
+        this.logger.debug(`error when deploy, error is: \n${e}`);
+
+        this.logger.log(`\tretry ${times} times`, 'red');
+        retry(e);
+      }
+    });
 
     await NasComponent.init(properties, _.cloneDeep(inputs));
 
@@ -154,17 +163,29 @@ export default class Component {
       props: { url: ALICLOUD_PLUGIN_DOWNLOAD_URL, version: ALICLOUD_PLUGIN_VERSION }
     });
 
-    let upRes;
-    if (await delFunctionInConfFile(pulumiStackFile, { serviceName, functionName }, 'w', 0o777)) {
-      upRes = await pulumiComponentIns.destroy(pulumiInputs);
-      await fse.remove(pulumiStackFile);
-    } else {
-      upRes = await pulumiComponentIns.up(pulumiInputs);
-    }
-    if (upRes.stderr && upRes.stderr !== '') {
-      this.logger.error(`destroy error: ${upRes.stderr}`);
-      return;
-    }
+    const delFunction = await delFunctionInConfFile(pulumiStackFile, { serviceName, functionName }, 'w', 0o777);
+    await promiseRetry(async (retry: any, times: number): Promise<any> => {
+      try {
+        if (delFunction) {
+          const pulumiRes = await pulumiComponentIns.destroy(pulumiInputs);
+          if (pulumiRes?.stderr && pulumiRes?.stderr !== '') {
+            this.logger.error(`remove error:\n ${pulumiRes?.stderr}`);
+            return;
+          }
+          await fse.remove(pulumiStackFile);
+        } else {
+          const pulumiRes = await pulumiComponentIns.up(pulumiInputs);
+          if (pulumiRes?.stderr) {
+            this.logger.error(`remove error:\n ${pulumiRes?.stderr}`);
+          }
+        }
+      } catch (e) {
+        this.logger.debug(`error when remove trigger, error is: \n${e}`);
+
+        this.logger.log(`\tretry ${times} times`, 'red');
+        retry(e);
+      }
+    });
   }
 
   async build(inputs: IInputs) {
