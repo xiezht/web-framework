@@ -93,13 +93,14 @@ export default class Component {
     if (fcConfig.customDomains && fcConfig.customDomains[0].domainName) {
       await requestDomains(fcConfig.customDomains[0].domainName);
     }
-    await NasComponent.remove(properties, _.cloneDeep(inputs));
 
     if (flag) {
       vm.succeed();
     } else {
       vm.fail();
     }
+
+    await NasComponent.remove(properties, _.cloneDeep(inputs));
 
     // 返回结果
     return {

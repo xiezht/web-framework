@@ -1,6 +1,6 @@
 import fse from 'fs-extra';
 import inquirer from 'inquirer';
-import got from 'got';
+import axios from 'axios';
 import { CONTEXT, STORENAME, CONTEXT_NAME } from '../constant';
 import { ILogConfig } from '../interface/service';
 import { IInputs } from '../interface/inputs';
@@ -107,7 +107,7 @@ export function getLogConfig(logConfig: 'auto' | 'Auto' | ILogConfig, autoName: 
 export async function requestDomains(domainName) {
   try {
     Logger.debug(CONTEXT, `Request domains http://${domainName}`)
-    await got(`http://${domainName}`, { timeout: 15 * 1000 });
+    await axios.get(`http://${domainName}`, { timeout: 15 * 1000 });
   } catch(ex) {
     Logger.debug(CONTEXT, ex.toString());
   }
