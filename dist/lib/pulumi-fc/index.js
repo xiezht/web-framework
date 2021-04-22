@@ -2,7 +2,7 @@ const path = require('path');
 const fse = require('fs-extra');
 const alicloud = require('@pulumi/alicloud');
 
-const defaultTimeout = '5m';
+const defaultTimeout = '2m';
 const defaultCustomTimeouts = {
   create: defaultTimeout,
   update: defaultTimeout,
