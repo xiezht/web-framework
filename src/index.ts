@@ -243,4 +243,11 @@ export default class Component {
 
     await NasComponent.rm(inputs.props, _.cloneDeep(inputs));
   }
+
+  async command(inputs: IInputs) {
+    const credentials = await getCredential(inputs.project.access);
+    await getImageAndReport(inputs, credentials.AccountID, 'command');
+
+    await NasComponent.command(inputs.props, _.cloneDeep(inputs));
+  }
 }

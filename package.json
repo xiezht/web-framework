@@ -1,7 +1,7 @@
 {
   "name": "web-framework",
   "main": "./dist/index.js",
-  "version": "0.0.10",
+  "version": "0.0.20",
   "dependencies": {
     "@alicloud/fc2": "^2.2.2",
     "@alicloud/pop-core": "^1.7.10",
@@ -34,7 +34,7 @@
     "dev": "npx tsc -w -p tsconfig.json",
     "prebuild": "rimraf dist",
     "copy-pulumi-fc": "mkdir -p dist/lib/pulumi-fc && cp -rf src/lib/pulumi-fc/* dist/lib/pulumi-fc",
-    "build:ts": "npx tsc -p tsconfig.json && npm run copy-pulumi-fc",
+    "build": "npx tsc -p tsconfig.json && npm run copy-pulumi-fc",
     "build:component": "npx webpack --mode=production",
     "test": "jest",
     "test:cov": "jest --coverage",

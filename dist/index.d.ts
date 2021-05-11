@@ -15,4 +15,5 @@ export default class Component {
     cp(inputs: IInputs): Promise<void>;
     ls(inputs: IInputs): Promise<void>;
     rm(inputs: IInputs): Promise<void>;
+    command(inputs: IInputs): Promise<void>;
 }

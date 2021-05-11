@@ -129,7 +129,7 @@ export async function getImageAndReport(inputs: IInputs, uid: string, command: s
   
   Logger.debug(CONTEXT, `get image customContainerConfig: ${JSON.stringify(inputs.props.function.customContainerConfig)}, runtime: ${inputs.props.runtime}, region: ${inputs.props.region}.`);
   if (!inputs.props.function.customContainerConfig.image) {
-    const { image } = await request('https://registry.serverlessfans.cn/registry/image', {
+    const { image } = await request('https://registry.devsapp.cn/registry/image', {
       method: 'post',
       body: {
         region: inputs.props.region,

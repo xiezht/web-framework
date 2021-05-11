@@ -25,6 +25,7 @@ export default class Component {
     static cp(properties: IProperties, v1Inputs: IInputs): Promise<void>;
     static ls(properties: IProperties, v1Inputs: IInputs): Promise<void>;
     static rm(properties: IProperties, v1Inputs: IInputs): Promise<void>;
+    static command(properties: IProperties, v1Inputs: IInputs): Promise<void>;
     static transfromInputs(properties: IProperties, inputs: IInputs): Promise<{
         nas: any;
         inputs: {

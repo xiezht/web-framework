@@ -81,6 +81,12 @@ export default class Component {
     await nas.rm(inputs);
   }
 
+  static async command(properties: IProperties, v1Inputs: IInputs) {
+    const { inputs, nas } = await this.transfromInputs(properties, v1Inputs);
+    this.logger.debug(`Command cmd is: ${inputs.args}`);
+    await nas.command(inputs);
+  }
+
   static async transfromInputs(properties: IProperties, inputs: IInputs) {
     const region = properties.region;
     const serviceName = properties.service.name;
