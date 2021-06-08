@@ -1,15 +1,17 @@
-import { ILogger } from '@serverless-devs/core';
 import { IInputs } from './interface/inputs';
 export default class Component {
-    logger: ILogger;
-    deploy(inputs: IInputs): Promise<{
-        region: string;
+    getDeployType(): Promise<any>;
+    getFc(): Promise<any>;
+    publish(inputs: any): Promise<any>;
+    unpublish(inputs: any): Promise<any>;
+    deploy(inputs: any): Promise<{
+        region: any;
         serviceName: any;
         functionName: any;
         customDomains: any;
     }>;
-    remove(inputs: IInputs): Promise<void>;
-    build(inputs: IInputs): Promise<void>;
+    remove(inputs: any): Promise<any>;
+    build(inputs: any): Promise<void>;
     logs(inputs: IInputs): Promise<void>;
     metrics(inputs: IInputs): Promise<void>;
     cp(inputs: IInputs): Promise<void>;

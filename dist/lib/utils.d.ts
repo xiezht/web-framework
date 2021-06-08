@@ -10,4 +10,4 @@ export declare function promptForConfirmContinue(message: string): Promise<boole
 export declare function isAuto(arg: any): arg is 'auto' | 'Auto';
 export declare function getLogConfig(logConfig: 'auto' | 'Auto' | ILogConfig, autoName: string): ILogConfig;
 export declare function requestDomains(domainName: any): Promise<void>;
-export declare function getImageAndReport(inputs: IInputs, uid: string, command: string): Promise<void>;
+export declare function getImageAndReport(inputs: IInputs, uid: string, command: string): Promise<IInputs>;

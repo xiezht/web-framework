@@ -1,11 +1,9 @@
-import * as core from '@serverless-devs/core';
 import { ICredentials, IProperties, IInputs } from '../interface/inputs';
 interface ISrc {
     src: string;
     excludes?: string[];
 }
 export default class Component {
-    static logger: core.ILogger;
     static getSrc(code: ISrc, serviceName: string, functionName: string): Promise<string>;
     static init(properties: IProperties, v1Inputs: IInputs): Promise<{
         regionId: string;

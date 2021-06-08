@@ -1,7 +1,7 @@
 {
   "name": "web-framework",
   "main": "./dist/index.js",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "dependencies": {
     "@alicloud/fc2": "^2.2.2",
     "@alicloud/pop-core": "^1.7.10",
@@ -36,7 +36,6 @@
     "watch": "npx tsc -w -p tsconfig.json",
     "prebuild": "rimraf dist",
     "build": "npx tsc -p tsconfig.json",
-    "build:component": "npx webpack --mode=production",
     "test": "jest",
     "test:cov": "jest --coverage",
     "lint": "f2elint scan",
