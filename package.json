@@ -13,6 +13,7 @@
     "lodash": "^4.17.20",
     "moment": "^2.29.1",
     "promise-retry": "^2.0.1",
+    "request-promise": "^4.2.6",
     "shelljs": "^0.8.4"
   },
   "devDependencies": {
@@ -31,10 +32,10 @@
     "webpack-cli": "^4.4.0"
   },
   "scripts": {
-    "dev": "npx tsc -w -p tsconfig.json",
+    "start": "npm run watch",
+    "watch": "npx tsc -w -p tsconfig.json",
     "prebuild": "rimraf dist",
-    "copy-pulumi-fc": "mkdir -p dist/lib/pulumi-fc && cp -rf src/lib/pulumi-fc/* dist/lib/pulumi-fc",
-    "build": "npx tsc -p tsconfig.json && npm run copy-pulumi-fc",
+    "build": "npx tsc -p tsconfig.json",
     "build:component": "npx webpack --mode=production",
     "test": "jest",
     "test:cov": "jest --coverage",

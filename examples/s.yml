@@ -4,58 +4,56 @@ access: default  #  秘钥别名
 
 services:
   framework-test: #  服务名称
-    component: web-framework  # 组件名称
+    component: ${path(..)}  # 组件名称
     props:
       runtime: nodejs12
       region: cn-shenzhen
       service:
         name: A-express
-        # logConfig: Auto
-        # description: 测试环节
-        # role:
-        #   name: framework-1899690531354629-cn-hongkong-express-test
-        #   statement:
-        #     - Action: sts:AssumeRole
-        #       Effect: Allow
-        #       Principal:
-        #         Service:
-        #           - fc.aliyuncs.com
-        #   policys:
-        #     - policyName: AliyunContainerRegistryReadOnlyAccess
-        #       policyType: System
-        #     - policyName: AliyunECSNetworkInterfaceManagementAccess
-        #       policyType: System
-        #     - policyName: web-framework-policy-test
-        #       statement:
-        #         - Effect: Deny
-        #           Action:
-        #             - sts:AssumeRole
-        #           Resource: '*'
+        # logConfig: auto
+        description: 测试环节
+        role:
+          name: framework-1899690531354629-cn-hongkong-express-test
+          statement:
+            - Action: sts:AssumeRole
+              Effect: Allow
+              Principal:
+                Service:
+                  - fc.aliyuncs.com
+          policys:
+            - policyName: AliyunContainerRegistryReadOnlyAccess
+              policyType: System
+            - policyName: AliyunECSNetworkInterfaceManagementAccess
+              policyType: System
+            - policyName: web-framework-policy-test
+              statement:
+                - Effect: Deny
+                  Action:
+                    - sts:AssumeRole
+                  Resource: '*'
       function:
-        # name: A-express
-        # service: test-wss-web
-        # runtime: nodejs12
-        # description: 测试环节
+        name: A-express
+        description: 测试环节
         customContainerConfig:
           # image: registry.cn-shenzhen.aliyuncs.com/test-wss/nodejs12:v0.1
-          command: '["node", "index.js"]'
-          # args: '["--port", "9000"]'
-        # caPort: 9000
+          command: '["node", "./A-express/server.js"]'
+          args: '["--port", "9000"]'
+        caPort: 9000
         code:
           src: ./src
           excludes:
             - package-lock.json
-      # trigger:
-      #   # name: def
-      #   # function: test
-      #   # service: test-wss-web
-      #   type: http
-      #   config:
-      #     authType: anonymous
-      #     methods:
-      #       - GET
-      #       - POST
-      #       - PUT
+      trigger:
+        # name: def
+        # function: test
+        # service: test-wss-web
+        type: http
+        config:
+          authType: anonymous
+          methods:
+            - GET
+            - POST
+            - PUT
       customDomains:
         - domainName: Auto
           protocol: HTTP
@@ -65,7 +63,7 @@ services:
         #   protocol: HTTP,HTTPS
         #   routeConfigs:
         #     - path: '/'
-        #   certConfig:
-        #     certName: test
-        #     certificate: ./certConfigCutom/cate.pem
-        #     privateKey: ./certConfigCutom/key.pem
+          # certConfig:
+          #   certName: test
+          #   certificate: ./certConfigCutom/cate.pem
+          #   privateKey: ./certConfigCutom/key.pem

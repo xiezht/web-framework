@@ -2,9 +2,9 @@ import * as core from '@serverless-devs/core';
 import _ from 'lodash';
 import path from 'path';
 import fse from 'fs-extra';
-import { CONTEXT } from '../constant';
 import Client from './client';
 import { ICredentials, IProperties, IInputs } from '../interface/inputs';
+import logger from '../common/logger';
 
 interface ISrc {
   src: string;
@@ -12,7 +12,6 @@ interface ISrc {
 }
 
 export default class Component {
-  @core.HLogger(CONTEXT) static logger: core.ILogger;
 
   static async getSrc(code: ISrc, serviceName: string, functionName: string): Promise<string> {
     const buildCodeUri = path.join(
@@ -39,7 +38,7 @@ export default class Component {
       serviceName,
       functionName,
     );
-    this.logger.info(`nas component get src is: ${src}`);
+    logger.info(`nas component get src is: ${src}`);
 
     const { inputs, nas } = await this.transfromInputs(properties, v1Inputs);
 
@@ -47,7 +46,7 @@ export default class Component {
 
     if (src) {
       inputs.args = `-r ${src} nas:///${inputs.props.nasDir}/${functionName}`;
-      this.logger.debug(`Cp cmd is: ${inputs.args}`);
+      logger.debug(`Cp cmd is: ${inputs.args}`);
       await nas.cp(inputs);
     }
 
@@ -57,13 +56,13 @@ export default class Component {
   static async remove(properties: IProperties, v1Inputs: IInputs) {
     const { inputs, nas } = await this.transfromInputs(properties, v1Inputs);
 
-    this.logger.debug(`Remove cmd is: ${inputs.args}`);
+    logger.debug(`Remove cmd is: ${inputs.args}`);
     await nas.remove(inputs);
   }
 
   static async cp(properties: IProperties, v1Inputs: IInputs) {
     const { inputs, nas } = await this.transfromInputs(properties, v1Inputs);
-    this.logger.debug(`Cp cmd is: ${inputs.args}`);
+    logger.debug(`Cp cmd is: ${inputs.args}`);
 
     await nas.cp(inputs);
   }
@@ -71,19 +70,19 @@ export default class Component {
   static async ls(properties: IProperties, v1Inputs: IInputs) {
     const { inputs, nas } = await this.transfromInputs(properties, v1Inputs);
 
-    this.logger.debug(`Ls cmd is: ${inputs.args}`);
+    logger.debug(`Ls cmd is: ${inputs.args}`);
     await nas.ls(inputs);
   }
 
   static async rm(properties: IProperties, v1Inputs: IInputs) {
     const { inputs, nas } = await this.transfromInputs(properties, v1Inputs);
-    this.logger.debug(`Rm cmd is: ${inputs.args}`);
+    logger.debug(`Rm cmd is: ${inputs.args}`);
     await nas.rm(inputs);
   }
 
   static async command(properties: IProperties, v1Inputs: IInputs) {
     const { inputs, nas } = await this.transfromInputs(properties, v1Inputs);
-    this.logger.debug(`Command cmd is: ${inputs.args}`);
+    logger.debug(`Command cmd is: ${inputs.args}`);
     await nas.command(inputs);
   }
 
@@ -99,7 +98,7 @@ export default class Component {
       credentials,
       excludes,
     );
-    this.logger.debug(`Nas properties is: ${JSON.stringify(nasProperties)}`);
+    logger.debug(`Nas properties is: ${JSON.stringify(nasProperties)}`);
 
     inputs.project.component = 'nas';
 
@@ -139,7 +138,7 @@ export default class Component {
 
     return {
       regionId,
-      serviceName: `_FRAMEWORK_NAS_${serviceName}`,
+      serviceName: `_FC_NAS_${serviceName}`,
       description: `service for fc nas used for service ${serviceName}`,
       vpcId,
       vSwitchId: vSwitchIds[0],

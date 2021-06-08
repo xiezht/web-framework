@@ -12,7 +12,9 @@ export default class Component {
       region,
       accessKeyID: profile.AccessKeyID,
       accessKeySecret: profile.AccessKeySecret,
+      securityToken: profile.SecurityToken,
       endpoint: `https://${profile.AccountID}.${region}.fc.aliyuncs.com`,
+      timeout: 6000000,
     });
   }
 
@@ -21,6 +23,8 @@ export default class Component {
       endpoint,
       apiVersion: '2017-06-26',
       accessKeyId: profile.AccessKeyID,
+      // @ts-ignore
+      securityToken: profile.SecurityToken,
       accessKeySecret: profile.AccessKeySecret,
     });
   }

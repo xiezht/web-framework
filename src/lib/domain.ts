@@ -1,10 +1,20 @@
 import * as core from '@serverless-devs/core';
 import _ from 'lodash';
 import fse from 'fs-extra';
-import { CONTEXT } from '../../constant';
-import { IDomain } from './interface';
-import { IProperties, IInputs } from '../../interface/inputs';
-import { isAuto } from '../utils';
+import { CONTEXT } from '../constant';
+import { isAuto } from './utils';
+
+interface IDomain {
+  domainName: string;
+  protocol: 'HTTP' | 'HTTP,HTTPS';
+  routeConfigs: {
+    serviceName: string;
+    functionName: string;
+    qualifier: string;
+    methods: string[];
+    path: string;
+  }[];
+}
 
 
 async function readCertFile (filePath: string = '') {
@@ -27,8 +37,8 @@ async function readCertFile (filePath: string = '') {
 export default class Component {
   @core.HLogger(CONTEXT) static logger: core.ILogger;
 
-  static async get(inputs: IInputs): Promise<IDomain[]> {
-    const { customDomains, service, function: functionConfig }: IProperties = inputs.props;
+  static async get(inputs): Promise<IDomain[]> {
+    const { customDomains, service, function: functionConfig } = inputs.props;
     const serviceName = service.name;
     const functionName = functionConfig.name || serviceName;
 
@@ -104,7 +114,7 @@ export default class Component {
     return domainConfigs;
   }
 
-  static async getAutoDomain(inputs: IInputs, serviceName: string, functionName: string): Promise<string> {
+  static async getAutoDomain(inputs, serviceName: string, functionName: string): Promise<string> {
     const domainComponent = await core.loadComponent('devsapp/domain');
 
     return await domainComponent.get({

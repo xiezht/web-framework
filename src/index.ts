@@ -1,43 +1,106 @@
 import {
-  HLogger,
-  ILogger,
   getCredential,
   help,
   commandParse,
   loadComponent,
   spinner,
 } from '@serverless-devs/core';
-import fse from 'fs-extra';
-import os from 'os';
-import path from 'path';
 import _ from 'lodash';
-import { HELP, CONTEXT } from './constant';
+import { HELP } from './constant';
 import { ICredentials, IInputs, ICommandParse } from './interface/inputs';
-import { genStackId, getImageAndReport, delFunctionInConfFile, isFile, requestDomains, promiseRetry } from './lib/utils';
-import { cpPulumiCodeFiles, genPulumiInputs } from './lib/pulumi';
-import * as shell from 'shelljs';
-import NasComponent from './lib/nasComponent';
-import Framework from './lib/framework';
-import ToMetrics from './lib/tarnsform/toMetrics';
-import ToLogs from './lib/tarnsform/toLogs';
-import Fc from './lib/framework/fc';
-import Build from './lib/tarnsform/toBuild';
+import ToLogs from './lib/tarnsform/to-logs';
+import ToMetrics from './lib/tarnsform/to-metrics';
+import ToFc from './lib/tarnsform/to-fc';
+import ToBuild from './lib/tarnsform/to-build';
 
-const PULUMI_CACHE_DIR: string = path.join(os.homedir(), '.s', 'cache', 'pulumi', 'web-framework');
-
-const ALICLOUD_PLUGIN_VERSION = process.env.ALICLOUD_PLUGIN_VERSION || 'v2.38.0';
-const ALICLOUD_PLUGIN_ZIP_FILE_NAME = `pulumi-resource-alicloud-${ALICLOUD_PLUGIN_VERSION}.tgz`;
-const ALICLOUD_PLUGIN_DOWNLOAD_URL = `serverless-pulumi.oss-accelerate.aliyuncs.com/alicloud-plugin/${ALICLOUD_PLUGIN_ZIP_FILE_NAME}`;
+import GenerateDockerfile from './lib/generate-dockerfile';
+import ProviderFactory from './lib/providers/factory';
+import NasComponent from './lib/nas';
+import Fc from './lib/fc';
+import { getImageAndReport, requestDomains } from './lib/utils';
+import Domain from './lib/domain';
+import logger from './common/logger';
 
 export default class Component {
-  @HLogger(CONTEXT) logger: ILogger;
 
-  async deploy(inputs: IInputs) {
+  async getDeployType() {
+    const fcDefault = await loadComponent('devsapp/fc-default');
+    return await fcDefault.get({ args: "web-framework" });
+  }
+
+  async getFc() {
+    return await loadComponent('devsapp/fc-deploy');
+  }
+
+  async publish(inputs) {
+    const apts = {
+      boolean: ['help'],
+      string: ['description'],
+      alias: { help: 'h', description: 'd' },
+    };
+    const comParse: any = commandParse({ args: inputs.args }, apts);
+
+    const deployType = await this.getDeployType();
+
+    if (deployType !== 'container') {
+      throw new Error('The verison capability currently only supports container.');
+    }
+
+    const credentials: ICredentials = await getCredential(inputs.project.access);
+    inputs.credentials = credentials;
+
+    const region = inputs.props.region;
+    const serviceName = inputs.props.service.name;
+
+    let nextQualifier;
+
+    const versions = await Fc.listVersions(credentials, region, serviceName);
+    if (_.isEmpty(versions)) {
+      nextQualifier = 1;
+    } else {
+      nextQualifier = versions.shift().versionId / 1 + 1;
+    }
+    logger.debug(`next qualifier is ${nextQualifier}.`);
+
+    inputs = await getImageAndReport(inputs, credentials.AccountID, 'publish');
+    const cloneInputs: any = _.cloneDeep(inputs);
+    cloneInputs.props = ToFc.transform(cloneInputs.props, deployType);
+
+    const imageId = await GenerateDockerfile(inputs, nextQualifier);
+
+    const provider = ProviderFactory.getProvider(inputs);
+    await provider.login();
+    cloneInputs.props.function.customContainerConfig.image = await provider.publish(imageId, nextQualifier);
+    logger.debug(`custom container config image is ${cloneInputs.props.function.customContainerConfig.image}`)
+    cloneInputs.props.customDomains = await Domain.get(inputs);
+    await (await this.getFc()).deploy(cloneInputs);
+
+    return await Fc.publishVersion(credentials, region, serviceName, comParse.data?.description);
+  }
+
+  async unpublish(inputs) {
+    const apts = {
+      boolean: ['help'],
+      string: ['version'],
+      alias: { help: 'h', version: 'v' },
+    };
+    const comParse: any = commandParse({ args: inputs.args }, apts);
+
+    const credentials: ICredentials = await getCredential(inputs.project.access);
+    inputs.credentials = credentials;
+
+    const region = inputs.props.region;
+    const serviceName = inputs.props.service.name;
+    logger.info(`unpublish version ${region}/${serviceName}.${comParse.data?.version}`)
+    return await Fc.deleteVersion(credentials, region, serviceName, comParse.data?.version);
+  }
+
+  async deploy(inputs) {
     const apts = {
       boolean: ['help', 'assumeYes'],
       alias: { help: 'h', assumeYes: 'y' },
     };
-    const comParse: ICommandParse = commandParse({ args: inputs.args }, apts);
+    const comParse: any = commandParse({ args: inputs.args }, apts);
     if (comParse.data?.help) {
       help(HELP);
       return;
@@ -45,59 +108,37 @@ export default class Component {
 
     const credentials: ICredentials = await getCredential(inputs.project.access);
     inputs.credentials = credentials;
+
+    inputs = await getImageAndReport(inputs, credentials.AccountID, 'deploy');
+    const cloneInputs: any = _.cloneDeep(inputs);
+
+    const deployType = await this.getDeployType();
+    cloneInputs.props = ToFc.transform(cloneInputs.props, deployType);
+
+    // @ts-ignore
+    delete cloneInputs.Properties;
+
+    if (deployType === 'container') {
+      const imageId = await GenerateDockerfile(inputs);
+  
+      const provider = ProviderFactory.getProvider(inputs);
+      await provider.login();
+      cloneInputs.props.function.customContainerConfig.image = await provider.publish(imageId);
+    }
+
+    cloneInputs.props.customDomains = await Domain.get(inputs);
+    logger.debug(`transfrom props: ${JSON.stringify(cloneInputs.props, null, '  ')}`);
+
+    const fcConfig = await (await this.getFc()).deploy(cloneInputs);
+
     const properties = inputs.props;
-
-    await getImageAndReport(inputs, credentials.AccountID, 'deploy');
-
-    const assumeYes = comParse.data?.assumeYes;
-    const stackId = genStackId(credentials.AccountID, properties.region, properties.service.name);
-
-    const pulumiStackDir = path.join(PULUMI_CACHE_DIR, stackId);
-    this.logger.debug(`Ensuring ${pulumiStackDir}...`);
-    await fse.ensureDir(pulumiStackDir, 0o777);
-    const fcConfigJsonFile = path.join(pulumiStackDir, 'config.json');
-    this.logger.debug(`Fc config json file path is: ${fcConfigJsonFile}`);
-
-    const f = new Framework(properties, fcConfigJsonFile, credentials.AccountID);
-    const fcConfig = await f.createConfigFile(_.cloneDeep(inputs), assumeYes);
-
-    await cpPulumiCodeFiles(pulumiStackDir);
-    shell.exec(`cd ${pulumiStackDir} && npm i`, { silent: true });
-
-    const pulumiInputs = genPulumiInputs(
-      inputs,
-      stackId,
-      properties.region,
-      pulumiStackDir,
-    );
-
-    // 部署 fc 资源
-    const pulumiComponentIns = await loadComponent('devsapp/pulumi-alibaba');
-    await pulumiComponentIns.installPluginFromUrl({
-      props: { url: ALICLOUD_PLUGIN_DOWNLOAD_URL, version: ALICLOUD_PLUGIN_VERSION }
-    });
-
-    await promiseRetry(async (retry: any, times: number): Promise<any> => {
-      try {
-        const pulumiRes = await pulumiComponentIns.up(pulumiInputs);
-        if (pulumiRes?.stderr && pulumiRes?.stderr !== '') {
-          this.logger.error(`deploy error:\n ${pulumiRes?.stderr}`);
-          return;
-        }
-        // 返回结果
-        return pulumiRes?.stdout;
-      } catch (e) {
-        this.logger.debug(`error when deploy, error is: \n${e}`);
-
-        this.logger.log(`\tretry ${times} times`, 'red');
-        retry(e);
-      }
-    });
-
-    await NasComponent.init(properties, _.cloneDeep(inputs));
+    if (deployType === 'nas') {
+      await NasComponent.init(properties, _.cloneDeep(inputs));
+      await NasComponent.remove(properties, _.cloneDeep(inputs));
+    }
 
     const vm = spinner('Try container acceleration');
-    const flag = await Fc.tryContainerAcceleration(credentials, properties.region, fcConfig.service.name, fcConfig.function.name, fcConfig.function.customContainerConfig);
+    const flag = await Fc.tryContainerAcceleration(credentials, fcConfig.region, fcConfig.service.name, fcConfig.function.name, fcConfig.function.customContainerConfig);
 
     if (fcConfig.customDomains && fcConfig.customDomains[0].domainName) {
       await requestDomains(fcConfig.customDomains[0].domainName);
@@ -109,8 +150,6 @@ export default class Component {
       vm.fail();
     }
 
-    await NasComponent.remove(properties, _.cloneDeep(inputs));
-
     // 返回结果
     return {
       region: properties.region,
@@ -120,7 +159,7 @@ export default class Component {
     };
   }
 
-  async remove(inputs: IInputs) {
+  async remove(inputs) {
     const apts = {
       boolean: ['help', 'assumeYes'],
       alias: { help: 'h', assumeYes: 'y' },
@@ -130,73 +169,45 @@ export default class Component {
       help(HELP);
       return;
     }
-    const credentials: ICredentials = await getCredential(inputs.project.access);
+    const cloneInputs = _.cloneDeep(inputs);
+    // @ts-ignore
+    delete cloneInputs.Properties;
+    cloneInputs.credentials = await getCredential(inputs.project.access);
+    await getImageAndReport(cloneInputs, cloneInputs.credentials.AccountID, 'build');
 
-    await getImageAndReport(inputs, credentials.AccountID, 'remove');
+    const deployType = await this.getDeployType();
+    cloneInputs.props = ToFc.transform(cloneInputs.props, deployType);
 
-    const properties = inputs.props;
-    const serviceName = properties.service.name;
-    const functionName = properties.function.name || serviceName;
-    const stackId = genStackId(credentials.AccountID, properties.region, properties.service.name);
-    const pulumiStackDir = path.join(PULUMI_CACHE_DIR, stackId);
-    const pulumiStackFile = path.join(pulumiStackDir, 'config.json');
+    cloneInputs.props.customDomains = await Domain.get(inputs);
+    logger.debug(`transfrom props: ${JSON.stringify(cloneInputs.props.customDomains)}`);
+    cloneInputs.args = 'service';
 
-    if (!await isFile(pulumiStackFile)) {
-      this.logger.error('Please deploy resource first');
-      return;
+    const region = inputs.props.region;
+    const serviceName = inputs.props.service.name;
+    const versions = await Fc.listVersions(cloneInputs.credentials, region, serviceName);
+    for (const { versionId } of versions) {
+      await this.unpublish({
+        project: inputs.project,
+        args: `--version ${versionId}`,
+        props: {
+          region,
+          service: { name: serviceName },
+        }
+      })
     }
 
-    // try {
-    //   await NasComponent.remove(properties, _.cloneDeep(inputs));
-    // } catch (ex) {
-    //   this.logger.debug(ex);
-    // }
-
-    const pulumiInputs = genPulumiInputs(
-      inputs,
-      stackId,
-      properties.region,
-      pulumiStackDir,
-    );
-    const pulumiComponentIns = await loadComponent('devsapp/pulumi-alibaba');
-    await pulumiComponentIns.installPluginFromUrl({
-      props: { url: ALICLOUD_PLUGIN_DOWNLOAD_URL, version: ALICLOUD_PLUGIN_VERSION }
-    });
-
-    const delFunction = await delFunctionInConfFile(pulumiStackFile, { serviceName, functionName }, 'w', 0o777);
-    await promiseRetry(async (retry: any, times: number): Promise<any> => {
-      try {
-        if (delFunction) {
-          const pulumiRes = await pulumiComponentIns.destroy(pulumiInputs);
-          if (pulumiRes?.stderr && pulumiRes?.stderr !== '') {
-            this.logger.error(`remove error:\n ${pulumiRes?.stderr}`);
-            return;
-          }
-          await fse.remove(pulumiStackFile);
-        } else {
-          const pulumiRes = await pulumiComponentIns.up(pulumiInputs);
-          if (pulumiRes?.stderr) {
-            this.logger.error(`remove error:\n ${pulumiRes?.stderr}`);
-          }
-        }
-      } catch (e) {
-        this.logger.debug(`error when remove trigger, error is: \n${e}`);
-
-        this.logger.log(`\tretry ${times} times`, 'red');
-        retry(e);
-      }
-    });
+    return (await this.getFc()).remove(cloneInputs);
   }
 
-  async build(inputs: IInputs) {
+  async build(inputs) {
     inputs.credentials = await getCredential(inputs.project.access);
-
     await getImageAndReport(inputs, inputs.credentials.AccountID, 'build');
 
     const builds = await loadComponent('devsapp/fc-build');
-    const cloneInputs = Build.transfromInputs(_.cloneDeep(inputs));
+    inputs.project.component = 'fc-build';
+    inputs.props = ToBuild.transfromInputs(inputs.props);
 
-    await builds.build(cloneInputs);
+    await builds.build(inputs);
   }
 
   async logs(inputs: IInputs) {

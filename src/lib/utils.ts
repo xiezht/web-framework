@@ -128,7 +128,7 @@ export async function getImageAndReport(inputs: IInputs, uid: string, command: s
   reportComponent(CONTEXT_NAME, { command, uid });
   
   Logger.debug(CONTEXT, `get image customContainerConfig: ${JSON.stringify(inputs.props.function.customContainerConfig)}, runtime: ${inputs.props.runtime}, region: ${inputs.props.region}.`);
-  if (!inputs.props.function.customContainerConfig.image) {
+  if (!inputs.props.function.customContainerConfig?.image) {
     const { image } = await request('https://registry.devsapp.cn/registry/image', {
       method: 'post',
       body: {
@@ -138,7 +138,10 @@ export async function getImageAndReport(inputs: IInputs, uid: string, command: s
       form: true
     });
     Logger.debug(CONTEXT, `auto image is ${image}.`);
-
+    // @ts-ignore
+    inputs.props.function.customContainerConfig || (inputs.props.function.customContainerConfig = {});
     inputs.props.function.customContainerConfig.image = image;
   }
+
+  return inputs;
 }
