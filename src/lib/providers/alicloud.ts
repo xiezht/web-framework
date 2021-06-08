@@ -46,15 +46,12 @@ export default class AliCloud extends CloudProvider {
     spawnSync(`docker login -u ${userName} -p ${password} registry.${region}.aliyuncs.com `, [], { cwd: './', stdio: 'inherit', shell: true });
   }
 
-  private executeTagCommand(region: string, imgId: string, imgversion = 'LATEST') {
-    const projectName = this.inputs.project.projectName.toLocaleLowerCase();
-    // const imgversion = Date.now();
+  private executeTagCommand(region: string, projectName: string, imgId: string, imgversion = 'LATEST') {
     spawnSync(`docker tag ${imgId} registry.${region}.aliyuncs.com/${this.namespace}/${projectName}:${imgversion}`, [], { cwd: './', stdio: 'inherit', shell: true });
     return imgversion;
   }
 
-  private executePublishCommand(region: string, imgversion: string | number) {
-    const projectName = this.inputs.project.projectName.toLocaleLowerCase();
+  private executePublishCommand(region: string, projectName: string, imgversion: string | number) {
     const { status } = spawnSync(`docker push registry.${region}.aliyuncs.com/${this.namespace}/${projectName}:${imgversion}`, [], { cwd: './', stdio: 'inherit', shell: true });
     if (status) {
       throw new Error('Failed to push the image to the Registry.');
@@ -119,15 +116,20 @@ export default class AliCloud extends CloudProvider {
       await this.createNameSpace(this.namespace).catch((e) => Logger.error(e));
     }
     await this.updateNamespace(this.namespace).catch((e) => Logger.error(e));
-    const projectName = this.inputs.project.projectName.toLocaleLowerCase();
+    
+    const properties = this.inputs.props;
+    const serviceName = properties.service.name;
+    const functionName = properties.function?.name || serviceName;
+    const projectName = `${serviceName}.${functionName}`.toLowerCase();
+
     const repoResult = await this.getRepos().catch((e) => Logger.error(e));
     const repos: any[] = repoResult.data.repos.map((item) => item.repoName);
     if (!repos.includes(projectName)) {
       await this.createRepo(projectName).catch((e) => Logger.error(e));
     }
     const region = this.inputs.props.region || 'cn-hangzhou';
-    const imgversion = await this.executeTagCommand(region, buildImg, qualifier);
-    await this.executePublishCommand(region, imgversion);
+    const imgversion = await this.executeTagCommand(region, projectName, buildImg, qualifier);
+    await this.executePublishCommand(region, projectName, imgversion);
     const imageUrl = `registry.${region}.aliyuncs.com/${this.namespace}/${projectName}:${imgversion}`;
     return imageUrl;
   }

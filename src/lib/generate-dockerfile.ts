@@ -38,7 +38,11 @@ WORKDIR /code/${functionName}`);
     await fse.writeFileSync('.dockerignore', exclude.join(codeUri ? `\n${codeUri}/` : '\n'));
   }
 
-  const imageId = `${inputs.appName.toLowerCase()}/${inputs.project.projectName.toLowerCase()}:${qualifier}`;
+  const projectName = `${serviceName}.${functionName}`.toLowerCase();
+  if (projectName.length > 64) {
+    throw new Error(`[${projectName}] The length is greater than 64, it is recommended to reduce the length of the service or function name.`)
+  }
+  const imageId = `${inputs.appName.toLowerCase()}/${projectName}:${qualifier}`;
   const { status } = spawnSync(`docker build -t ${imageId} -f ${dockerPath} . `, [], {
     cwd: './',
     stdio: 'inherit',
