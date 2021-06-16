@@ -1,7 +1,7 @@
 import { IInputs } from './interface/inputs';
 export default class Component {
-    getDeployType(): Promise<any>;
-    getFc(): Promise<any>;
+    private getDeployType;
+    private getFc;
     publish(inputs: any): Promise<any>;
     unpublish(inputs: any): Promise<any>;
     deploy(inputs: any): Promise<{
