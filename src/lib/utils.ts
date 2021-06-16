@@ -8,6 +8,8 @@ import { IInputs } from '../interface/inputs';
 import { Logger, reportComponent, request } from '@serverless-devs/core';
 import _ from 'lodash';
 
+export const isDebug = process.env?.temp_params?.includes('--debug');
+
 export async function promiseRetry(fn: any): Promise<any> {
   const retryOptions = {
     retries: 2,

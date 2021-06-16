@@ -1,5 +1,7 @@
 import fse from 'fs-extra';
+import { spinner } from '@serverless-devs/core';
 import path from 'path';
+import { isDebug } from './utils';
 
 const { spawnSync } = require('child_process');
 
@@ -42,10 +44,16 @@ WORKDIR /code/${functionName}`);
   if (projectName.length > 64) {
     throw new Error(`[${projectName}] The length is greater than 64, it is recommended to reduce the length of the service or function name.`)
   }
+
   const imageId = `${inputs.appName.toLowerCase()}/${projectName}:${qualifier}`;
-  const { status } = spawnSync(`docker build -t ${imageId} -f ${dockerPath} . `, [], {
+  const command = `docker build -t ${imageId} -f ${dockerPath} . `;
+  
+  const stdio = isDebug ? 'inherit' : 'ignore';
+  const vm = isDebug ? undefined : spinner(`Run: ${command}`);
+
+  const { status } = spawnSync(command, [], {
+    stdio,
     cwd: './',
-    stdio: 'inherit',
     shell: true
   });
 
@@ -57,8 +65,10 @@ WORKDIR /code/${functionName}`);
   }
 
   if (status) {
+    vm?.fail();
     throw new Error('Failed to package image.');
   }
+  vm?.succeed();
   return imageId;
 }
 

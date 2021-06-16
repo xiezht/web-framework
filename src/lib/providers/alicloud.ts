@@ -1,7 +1,9 @@
 
 import popCore from '@alicloud/pop-core';
+import { spinner } from '@serverless-devs/core';
 import Logger from '../../common/logger';
 import CloudProvider from './provider';
+import { isDebug } from '../utils';
 
 const { spawnSync } = require('child_process');
 
@@ -43,19 +45,41 @@ export default class AliCloud extends CloudProvider {
   }
 
   private executeLoginCommand(userName, password, region = 'cn-hangzhou') {
-    spawnSync(`docker login -u ${userName} -p ${password} registry.${region}.aliyuncs.com `, [], { cwd: './', stdio: 'inherit', shell: true });
+    const command = `docker login -u ${userName} -p ${password} registry.${region}.aliyuncs.com `;
+    const vm = isDebug ? undefined : spinner(`Run: ${command}`);
+    spawnSync(command, [], {
+      cwd: './',
+      stdio: isDebug ? 'inherit' : 'ignore',
+      shell: true,
+    });
+    vm?.stop();
   }
 
   private executeTagCommand(region: string, projectName: string, imgId: string, imgversion = 'LATEST') {
-    spawnSync(`docker tag ${imgId} registry.${region}.aliyuncs.com/${this.namespace}/${projectName}:${imgversion}`, [], { cwd: './', stdio: 'inherit', shell: true });
+    const command = `docker tag ${imgId} registry.${region}.aliyuncs.com/${this.namespace}/${projectName}:${imgversion}`;
+    const vm = isDebug ? undefined : spinner(`Run: ${command}`);
+    spawnSync(command, [], {
+      cwd: './',
+      stdio: isDebug ? 'inherit' : 'ignore',
+      shell: true,
+    });
+    vm?.stop();
     return imgversion;
   }
 
   private executePublishCommand(region: string, projectName: string, imgversion: string | number) {
-    const { status } = spawnSync(`docker push registry.${region}.aliyuncs.com/${this.namespace}/${projectName}:${imgversion}`, [], { cwd: './', stdio: 'inherit', shell: true });
+    const command = `docker push registry.${region}.aliyuncs.com/${this.namespace}/${projectName}:${imgversion}`;
+    const vm = isDebug ? undefined : spinner(`Run: ${command}`);
+    const { status } = spawnSync(command, [], {
+      cwd: './',
+      stdio: isDebug ? 'inherit' : 'ignore',
+      shell: true,
+    });
     if (status) {
+      vm?.fail();
       throw new Error('Failed to push the image to the Registry.');
     }
+    vm?.succeed();
   }
 
   private getNameSpace() {

@@ -23,12 +23,12 @@ import logger from './common/logger';
 
 export default class Component {
 
-  async getDeployType() {
+  private async getDeployType() {
     const fcDefault = await loadComponent('devsapp/fc-default');
     return await fcDefault.get({ args: "web-framework" });
   }
 
-  async getFc() {
+  private async getFc() {
     return await loadComponent('devsapp/fc-deploy');
   }
 
