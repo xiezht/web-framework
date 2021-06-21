@@ -1,8 +1,8 @@
 import * as Interface from '../../interface/inputs';
 
 export default class Component {
-  static tarnsform(inputs: Interface.IInputs) {
-    inputs.project.component = 'fc-metrics';
+  static transform(inputs: Interface.IInputs) {
+    inputs.project.component = 'fc-info';
 
     const { region, service, function: functionConfig } = inputs.props;
 
@@ -12,7 +12,7 @@ export default class Component {
     return {
       ...inputs,
       props: {
-        regionId: region,
+        region,
         serviceName,
         functionName
       }

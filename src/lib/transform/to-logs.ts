@@ -5,7 +5,7 @@ import { getAutoName } from '../../constant';
 import { getLogConfig } from '../utils';
 
 export default class Component {
-  static tarnsform(inputs: IInputs) {
+  static transform(inputs: IInputs) {
     inputs.project.component = 'fc-logs';
 
     const { region, service, function: functionConfig }: Interface.IProperties = inputs.props;

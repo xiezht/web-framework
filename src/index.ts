@@ -8,10 +8,11 @@ import {
 import _ from 'lodash';
 import { HELP } from './constant';
 import { ICredentials, IInputs, ICommandParse } from './interface/inputs';
-import ToLogs from './lib/tarnsform/to-logs';
-import ToMetrics from './lib/tarnsform/to-metrics';
-import ToFc from './lib/tarnsform/to-fc';
-import ToBuild from './lib/tarnsform/to-build';
+import ToLogs from './lib/transform/to-logs';
+import ToMetrics from './lib/transform/to-metrics';
+import ToFc from './lib/transform/to-fc';
+import ToBuild from './lib/transform/to-build';
+import ToInfo from './lib/transform/to-info';
 
 import GenerateDockerfile from './lib/generate-dockerfile';
 import ProviderFactory from './lib/providers/factory';
@@ -120,7 +121,7 @@ export default class Component {
 
     if (deployType === 'container') {
       const imageId = await GenerateDockerfile(inputs);
-  
+
       const provider = ProviderFactory.getProvider(inputs);
       await provider.login();
       cloneInputs.props.function.customContainerConfig.image = await provider.publish(imageId);
@@ -218,9 +219,9 @@ export default class Component {
     inputs.credentials = await getCredential(inputs.project.access);
     await getImageAndReport(inputs, inputs.credentials.AccountID, 'logs');
 
-    const inputsLogs = await ToLogs.tarnsform(_.cloneDeep(inputs));
+    const inputsLogs = await ToLogs.transform(_.cloneDeep(inputs));
     const logs = await loadComponent('devsapp/logs');
-    
+
     await logs.logs(inputsLogs);
   }
 
@@ -229,9 +230,19 @@ export default class Component {
 
     await getImageAndReport(inputs, inputs.credentials.AccountID, 'metrics');
 
-    const inputsMetrics = await ToMetrics.tarnsform(_.cloneDeep(inputs));
+    const inputsMetrics = await ToMetrics.transform(_.cloneDeep(inputs));
     const metrics = await loadComponent('devsapp/fc-metrics');
     await metrics.metrics(inputsMetrics);
+  }
+
+  async info(inputs: IInputs) {
+    inputs.credentials = await getCredential(inputs.project.access);
+
+    await getImageAndReport(inputs, inputs.credentials.AccountID, 'metrics');
+
+    const inputsInfo = await ToInfo.transform(_.cloneDeep(inputs));
+    const info = await loadComponent('devsapp/fc-info');
+    await info.metrics(inputsInfo);
   }
 
   async cp(inputs: IInputs) {
