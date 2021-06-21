@@ -2,7 +2,7 @@ import * as Interface from '../../interface/inputs';
 export default class Component {
     static transform(inputs: Interface.IInputs): {
         props: {
-            regionId: string;
+            region: string;
             serviceName: string;
             functionName: string;
         };

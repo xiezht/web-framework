@@ -12,7 +12,7 @@ export default class Component {
     return {
       ...inputs,
       props: {
-        regionId: region,
+        region,
         serviceName,
         functionName
       }

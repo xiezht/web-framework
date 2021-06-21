@@ -5,6 +5,7 @@ export default class Component {
             region: string;
             serviceName: string;
             functionName: string;
+            triggerNames: string[];
         };
         project: {
             component: string;

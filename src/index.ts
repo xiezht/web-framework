@@ -242,7 +242,7 @@ export default class Component {
 
     const inputsInfo = await ToInfo.transform(_.cloneDeep(inputs));
     const info = await loadComponent('devsapp/fc-info');
-    await info.info(inputsInfo);
+    return await info.info(inputsInfo)
   }
 
   async cp(inputs: IInputs) {
