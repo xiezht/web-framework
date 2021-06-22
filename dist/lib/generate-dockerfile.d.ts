@@ -1,1 +1,1 @@
-export default function (inputs: any, qualifier?: string): Promise<string>;
+export default function (inputs: any, qualifier: any): Promise<string>;
