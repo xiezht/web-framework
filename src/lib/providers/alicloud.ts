@@ -55,7 +55,7 @@ export default class AliCloud extends CloudProvider {
     vm?.stop();
   }
 
-  private executeTagCommand(region: string, projectName: string, imgId: string, imgversion = 'LATEST') {
+  private executeTagCommand(region: string, projectName: string, imgId: string, imgversion: string | number) {
     const command = `docker tag ${imgId} registry.${region}.aliyuncs.com/${this.namespace}/${projectName}:${imgversion}`;
     const vm = isDebug ? undefined : spinner(`Run: ${command}`);
     spawnSync(command, [], {

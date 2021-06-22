@@ -7,5 +7,5 @@ export default abstract class CloudProvider {
   }
 
   abstract login();
-  abstract publish(buildImg: string, qualifier?: string): Promise<string>;
+  abstract publish(buildImg: string, qualifier: string): Promise<string>;
 }
