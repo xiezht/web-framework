@@ -5,7 +5,7 @@ import { isDebug } from './utils';
 
 const { spawnSync } = require('child_process');
 
-export default async function (inputs, qualifier = 'LATEST') {
+export default async function (inputs, qualifier) {
   const properties = inputs.props;
   const serviceName = properties.service.name;
   const {
@@ -20,11 +20,11 @@ export default async function (inputs, qualifier = 'LATEST') {
       由于之前的镜像是我们的公用镜像，所以需要转化成用户的镜像。
   3. 替换   getImageAndReport   得到imageId */
 
-  let dockerPath = 'DockerFile';
+  let dockerPath = 'Dockerfile';
   let deleteIgnore = false;
 
   const codeUri = await getSrc(code, serviceName, functionName);
-  if (!(await fse.pathExists('DockerFile'))) {
+  if (!(await fse.pathExists(dockerPath))) {
     dockerPath = '.Dockerfile';
     await fse.writeFileSync(dockerPath, `FROM ${customContainerConfig.image}
 RUN mkdir /code

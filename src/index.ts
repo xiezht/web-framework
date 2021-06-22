@@ -120,11 +120,12 @@ export default class Component {
     delete cloneInputs.Properties;
 
     if (deployType === 'container') {
-      const imageId = await GenerateDockerfile(inputs);
+      const qualifier = `LATEST-${new Date().getTime()}`;
+      const imageId = await GenerateDockerfile(inputs, qualifier);
 
       const provider = ProviderFactory.getProvider(inputs);
       await provider.login();
-      cloneInputs.props.function.customContainerConfig.image = await provider.publish(imageId);
+      cloneInputs.props.function.customContainerConfig.image = await provider.publish(imageId, qualifier);
     }
 
     cloneInputs.props.customDomains = await Domain.get(inputs);
