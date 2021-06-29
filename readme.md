@@ -27,7 +27,7 @@
 
 |  参数   |  必填  |  类型  | 取值  |  描述  |  备注  |    
 |  ----  | ----  |  ----  | ----  |  ----  |  ----  |
-| logStore  | true | string  | - | logstore 名称  |  -  |
+| logstore  | true | string  | - | logstore 名称  |  -  |
 | project  | true | string  | - | project 名称  |  -  |
 
 #### role
